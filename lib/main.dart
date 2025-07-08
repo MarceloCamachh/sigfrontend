@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:sigfrontend/pages/splash_screen.dart';
@@ -19,22 +19,25 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'SIG Rider',
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(137, 90, 135, 218),
-        ),
-        textTheme: GoogleFonts.nunitoTextTheme(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
-      initialRoute: '/',
-      getPages: [
-        GetPage(name: '/', page: () => const SplashScreen()),
-        // otras rutas aquí
-      ],
-      debugShowCheckedModeBanner: false,
+      child: MaterialApp(
+        title: 'SIG Rider',
+        theme: ThemeData(
+          useMaterial3: true,
+          brightness: Brightness.light,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(137, 90, 135, 218),
+          ),
+          textTheme: GoogleFonts.nunitoTextTheme(),
+        ),
+        home: const SplashScreen(),
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }
