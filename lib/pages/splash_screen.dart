@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sigfrontend/components/FadeThroughPageRoute.dart';
 import 'package:sigfrontend/pages/login.dart';
+import 'package:sigfrontend/pages/registerPages/register.dart';
 import '../components/BottonChange.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -50,6 +51,20 @@ class SplashScreen extends StatelessWidget {
                           Navigator.of(
                             context,
                           ).push(FadeThroughPageRoute(page: const LoginPage()));
+                        },
+                        width: width * 0.8,
+                        height: 55,
+                        fontSize: 20,
+                      ),
+                      const SizedBox(height: 30),
+                      BottonChange(
+                        colorBack: Colors.white70,
+                        colorFont: Colors.black,
+                        textTile: 'Aplicar Ahora',
+                        onPressed: () {
+                          Navigator.of(
+                            context,
+                          ).push(FadeThroughPageRoute(page: const RegistroPaso1Page()));
                         },
                         width: width * 0.8,
                         height: 55,
