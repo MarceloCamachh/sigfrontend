@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sigfrontend/components/Sidebar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -57,15 +58,7 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: const [
-            DrawerHeader(child: Text("Menú de navegación")),
-            ListTile(title: Text("Opción 1")),
-            ListTile(title: Text("Opción 2")),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(),
       body: SafeArea(
         child: Builder(
           builder:
