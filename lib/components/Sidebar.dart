@@ -23,7 +23,7 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final saludo = obtenerSaludo();
-    final isAdmin = userProvider.role == 'admin';
+
     return Drawer(
       child: SafeArea(
         child: Stack(
