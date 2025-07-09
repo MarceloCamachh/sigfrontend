@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sigfrontend/components/BottonChange.dart';
+import 'package:sigfrontend/components/CustomAppBar.dart';
 import 'package:sigfrontend/models/registerData.dart';
 import 'package:sigfrontend/pages/registerPages/register2.dart';
 
@@ -16,8 +18,14 @@ class _RegistroPaso1PageState extends State<RegistroPaso1Page> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: AppBar(title: const Text("Registro - Paso 1")),
+      appBar: CustomAppBar(
+        title1: 'Registro Paso 1',
+        title2: '',
+        icon: Icons.arrow_back_ios_rounded,
+        onIconPressed: () => Navigator.of(context).pop(),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -29,29 +37,24 @@ class _RegistroPaso1PageState extends State<RegistroPaso1Page> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 30),
-              TextFormField(
-                controller: _nombreController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu nombre';
-                  }
-                  return null;
-                },
+              buildTextField(
+                'Nombre',
+                'Ingresa tu nombre',
+                _nombreController,
+                false,
               ),
               const SizedBox(height: 20),
-              TextFormField(
-                controller: _apellidoController,
-                decoration: const InputDecoration(labelText: 'Apellido'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu apellido';
-                  }
-                  return null;
-                },
+              buildTextField(
+                'Apellido',
+                'Ingresa tu apellido',
+                _apellidoController,
+                false,
               ),
               const Spacer(),
-              ElevatedButton(
+              BottonChange(
+                colorBack: Colors.black,
+                colorFont: Colors.white,
+                textTile: 'siguiente',
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final data = RegisterData();
@@ -66,7 +69,9 @@ class _RegistroPaso1PageState extends State<RegistroPaso1Page> {
                     );
                   }
                 },
-                child: const Text('Siguiente'),
+                width: width * 0.8,
+                height: 50,
+                fontSize: 18,
               ),
             ],
           ),
@@ -81,4 +86,40 @@ class _RegistroPaso1PageState extends State<RegistroPaso1Page> {
     _apellidoController.dispose();
     super.dispose();
   }
+}
+
+Widget buildTextField(
+  String label,
+  String hint,
+  TextEditingController controller,
+  bool isPassword,
+) {
+  return TextFormField(
+    controller: controller,
+    decoration: InputDecoration(
+      labelText: label,
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color.fromARGB(255, 174, 191, 200)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.black),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color.fromARGB(255, 174, 191, 200)),
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+    ),
+    obscureText: isPassword,
+    validator: (value) {
+      if (value == null || value.isEmpty) {
+        return 'Este campo no puede estar vacío';
+      }
+      return null;
+    },
+  );
 }

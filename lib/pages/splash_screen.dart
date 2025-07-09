@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:sigfrontend/components/FadeThroughPageRoute.dart';
 import 'package:sigfrontend/pages/home.dart';
 import 'package:sigfrontend/pages/login.dart';
-import 'package:sigfrontend/pages/registerPages/register.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import '../components/BottonChange.dart';
 
@@ -72,6 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                       ),
                       const SizedBox(height: 80),
+                      //const Spacer(),
                       BottonChange(
                         colorBack: Colors.black,
                         colorFont: Colors.white,
@@ -80,22 +80,6 @@ class _SplashScreenState extends State<SplashScreen> {
                           Navigator.of(
                             context,
                           ).push(FadeThroughPageRoute(page: const LoginPage()));
-                        },
-                        width: width * 0.8,
-                        height: 55,
-                        fontSize: 20,
-                      ),
-                      const SizedBox(height: 30),
-                      BottonChange(
-                        colorBack: Colors.white70,
-                        colorFont: Colors.black,
-                        textTile: 'Aplicar Ahora',
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            FadeThroughPageRoute(
-                              page: const RegistroPaso1Page(),
-                            ),
-                          );
                         },
                         width: width * 0.8,
                         height: 55,
