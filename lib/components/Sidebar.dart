@@ -5,6 +5,7 @@ import 'package:sigfrontend/pages/home.dart';
 import 'package:sigfrontend/pages/splash_screen.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/pages/User/UserManagementPage .dart';
+import 'package:sigfrontend/pages/User/UserProfilePage.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -84,25 +85,20 @@ class AppDrawer extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const HomePage(),
+                              builder: (context) => const UserProfilePage(),
                             ),
                           );
                         }, Icons.person),
                         const Divider(indent: 0, endIndent: 0),
-                        _alingedText(
-                          'Administrar usuarios',
-                          () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => const UserManagementPage(),
-                              ),
-                            );
-                          },
-                          Icons.supervisor_account_outlined,
-                        ),
+                        _alingedText('Gestionar usuarios', () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const UserManagementPage(),
+                            ),
+                          );
+                        }, Icons.supervisor_account_outlined),
                         const Divider(indent: 0, endIndent: 0),
                         _alingedText('Configuración', () {
                           Navigator.pop(context);
