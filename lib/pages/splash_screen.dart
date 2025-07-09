@@ -1,11 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sigfrontend/components/FadeThroughPageRoute.dart';
+import 'package:sigfrontend/pages/home.dart';
 import 'package:sigfrontend/pages/login.dart';
 import 'package:sigfrontend/pages/registerPages/register.dart';
+import 'package:sigfrontend/providers/user_provider.dart';
 import '../components/BottonChange.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    await userProvider.loadUserFromStorage();
+
+    final isValid = await userProvider.isSessionValid();
+
+    if (!mounted) return;
+
+    if (isValid) {
+      Navigator.of(
+        context,
+      ).pushReplacement(FadeThroughPageRoute(page: const HomePage()));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +91,11 @@ class SplashScreen extends StatelessWidget {
                         colorFont: Colors.black,
                         textTile: 'Aplicar Ahora',
                         onPressed: () {
-                          Navigator.of(
-                            context,
-                          ).push(FadeThroughPageRoute(page: const RegistroPaso1Page()));
+                          Navigator.of(context).push(
+                            FadeThroughPageRoute(
+                              page: const RegistroPaso1Page(),
+                            ),
+                          );
                         },
                         width: width * 0.8,
                         height: 55,
@@ -76,7 +107,6 @@ class SplashScreen extends StatelessWidget {
               ],
             ),
           ),
-
         ),
       ),
     );

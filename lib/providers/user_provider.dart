@@ -46,7 +46,6 @@ class UserProvider with ChangeNotifier {
   Future<void> setUserData(Map<String, dynamic> data) async {
     try {
       final user = data['user'];
-      print(user);
       _id = user['id'] as String?;
       _email = user['email'] as String?;
       _phoneNumber = user['phone_number'] as int?;
@@ -57,22 +56,19 @@ class UserProvider with ChangeNotifier {
 
       if (_accessToken != null) {
         await _storage.write(key: 'access_token', value: _accessToken);
+        await _storage.write(
+          key: 'login_timestamp',
+          value: DateTime.now().toIso8601String(),
+        );
       }
       if (_refreshToken != null) {
         await _storage.write(key: 'refresh_token', value: _refreshToken);
       }
 
-      if (_accessToken != null) {
-        final decodedToken = _decodeJwt(_accessToken!);
-        if (decodedToken != null) {
-          //print('Contenido del JWT decodificado:');
-          //print(JsonEncoder.withIndent('  ').convert(decodedToken));
-        }
-      }
-
       notifyListeners();
     } catch (e) {
-      print('Error al establecer los datos del usuario: $e');
+      // ignore: avoid_print
+      print('Error al establecer los datos del usuario: \$e');
     }
   }
 
@@ -86,17 +82,45 @@ class UserProvider with ChangeNotifier {
         if (decodedToken != null) {
           _id = decodedToken['sub'] as String?;
           _email = decodedToken['email'] as String?;
+          // ignore: avoid_print
           print('Token cargado y decodificado:');
+          // ignore: avoid_print
           print(JsonEncoder.withIndent('  ').convert(decodedToken));
         }
       }
 
       notifyListeners();
     } catch (e) {
+      // ignore: avoid_print
       print(
         'Error al cargar los datos del usuario desde el almacenamiento: $e',
       );
     }
+  }
+
+  Future<bool> isSessionValid() async {
+    final accessToken = await _storage.read(key: 'access_token');
+    final loginTimestamp = await _storage.read(key: 'login_timestamp');
+
+    if (accessToken != null && loginTimestamp != null) {
+      final loginDate = DateTime.parse(loginTimestamp);
+      final now = DateTime.now();
+      final difference = now.difference(loginDate);
+
+      if (difference.inDays < 7) {
+        _accessToken = accessToken;
+        _refreshToken = await _storage.read(key: 'refresh_token');
+        final decodedToken = _decodeJwt(accessToken);
+        if (decodedToken != null) {
+          _id = decodedToken['sub'] as String?;
+          _email = decodedToken['email'] as String?;
+        }
+        notifyListeners();
+        return true;
+      }
+    }
+
+    return false;
   }
 
   Future<void> clearUser() async {
