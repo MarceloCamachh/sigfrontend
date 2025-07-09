@@ -52,11 +52,7 @@ class OrderCard extends StatelessWidget {
         color: Colors.red.shade600,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 6,
-            offset: Offset(0, 3),
-          ),
+          BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3)),
         ],
       ),
       child: Column(

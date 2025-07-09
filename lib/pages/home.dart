@@ -27,15 +27,20 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _checkPermissionAndGetLocation();
-    _fetchOrders(); 
+    _fetchOrders();
   }
 
   Future<void> _fetchOrders() async {
     try {
-     final token = Provider.of<UserProvider>(context, listen: false).accessToken;
+      final token =
+          Provider.of<UserProvider>(context, listen: false).accessToken;
       if (token == null) {
+        // ignore: avoid_print
         print('Token no disponible');
         return;
+      } else {
+        // ignore: avoid_print
+        print('Token obtenido: $token');
       }
       final orders = await OrderServices().getAllOrders(token: token);
       setState(() {
@@ -43,11 +48,11 @@ class HomePageState extends State<HomePage> {
         _cargandoOrdenes = false;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error al obtener órdenes: $e');
       setState(() => _cargandoOrdenes = false);
     }
   }
-
 
   Future<void> _checkPermissionAndGetLocation() async {
     final status = await Permission.location.request();
@@ -168,20 +173,25 @@ class HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
-                        child: _ordenes.isEmpty
-                            ? const Center(child: Text('No hay órdenes disponibles'))
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: _ordenes.length,
-                                itemBuilder: (context, index) {
-                                  final order = _ordenes[index];
-                                  return SizedBox(
+                        child:
+                            _ordenes.isEmpty
+                                ? const Center(
+                                  child: Text('No hay órdenes disponibles'),
+                                )
+                                : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  itemCount: _ordenes.length,
+                                  itemBuilder: (context, index) {
+                                    final order = _ordenes[index];
+                                    return SizedBox(
                                       width: 260,
                                       child: OrderCard(order: order),
                                     );
-                                },
-                              ),
+                                  },
+                                ),
                       ),
                     ),
 
@@ -193,7 +203,6 @@ class HomePageState extends State<HomePage> {
                       child: Center(child: CircularProgressIndicator()),
                     ),
                 ],
-
               ),
         ),
       ),
