@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sigfrontend/components/CustomAppBar.dart';
 import 'package:sigfrontend/models/registerData.dart';
 import 'package:sigfrontend/pages/registerPages/register4.dart';
 import 'package:sigfrontend/services/deliveryvehiclesServices.dart';
@@ -33,7 +34,12 @@ class _RegistroVehiculoPageState extends State<RegistroVehiculoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Registro - $nombreVehiculo")),
+      appBar: CustomAppBar(
+        title1: 'Registro $nombreVehiculo',
+        title2: '',
+        icon: Icons.arrow_back_ios_rounded,
+        onIconPressed: () => Navigator.of(context).pop(),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -42,7 +48,10 @@ class _RegistroVehiculoPageState extends State<RegistroVehiculoPage> {
             children: [
               Text(
                 "Ingresa los datos de tu $nombreVehiculo",
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 30),
               TextFormField(
