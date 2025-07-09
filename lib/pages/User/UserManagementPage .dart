@@ -28,24 +28,45 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   void _editUser(UserService service, Map<String, dynamic> user) async {
-    final controller = TextEditingController(
+    final phoneController = TextEditingController(
       text: user['phone_number']?.toString() ?? '',
     );
+    final nameController = TextEditingController(
+      text: user['user_metadata']?['name'] ?? '',
+    );
+    final emailController = TextEditingController(text: user['email'] ?? '');
+
     await showDialog(
       context: context,
       builder:
           (_) => AlertDialog(
-            title: const Text('Editar teléfono'),
-            content: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Teléfono'),
+            title: const Text('Editar usuario'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Nombre'),
+                ),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'Correo'),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                TextField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(labelText: 'Teléfono'),
+                  keyboardType: TextInputType.phone,
+                ),
+              ],
             ),
             actions: [
               TextButton(
                 onPressed: () async {
                   await service.updateUser(user['id'], {
-                    'phone_number': int.tryParse(controller.text),
+                    'name': nameController.text,
+                    'email': emailController.text,
+                    'phone_number': int.tryParse(phoneController.text),
                   });
                   Navigator.pop(context);
                   await loadUsers(service);
@@ -152,7 +173,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                                   ),
                                 const PopupMenuItem(
                                   value: 'editar',
-                                  child: Text('Editar teléfono'),
+                                  child: Text('Editar Usuario'),
                                 ),
                                 const PopupMenuItem(
                                   value: 'eliminar',
