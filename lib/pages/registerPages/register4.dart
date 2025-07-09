@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sigfrontend/components/CustomAppBar.dart';
 import 'package:sigfrontend/models/registerData.dart';
 import 'package:sigfrontend/pages/registerPages/register5.dart';
-
 
 class RegistroPaso4Page extends StatefulWidget {
   final RegisterData data;
@@ -31,7 +31,12 @@ class _RegistroPaso4PageState extends State<RegistroPaso4Page> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Registro - Paso 4")),
+      appBar: CustomAppBar(
+        title1: 'Registro Biciclicleta',
+        title2: '',
+        icon: Icons.arrow_back_ios_rounded,
+        onIconPressed: () => Navigator.of(context).pop(),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Form(
@@ -45,12 +50,13 @@ class _RegistroPaso4PageState extends State<RegistroPaso4Page> {
               const SizedBox(height: 30),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Ciudad'),
-                items: _ciudades.map((ciudad) {
-                  return DropdownMenuItem(
-                    value: ciudad,
-                    child: Text(ciudad),
-                  );
-                }).toList(),
+                items:
+                    _ciudades.map((ciudad) {
+                      return DropdownMenuItem(
+                        value: ciudad,
+                        child: Text(ciudad),
+                      );
+                    }).toList(),
                 value: _ciudadSeleccionada,
                 onChanged: (value) {
                   setState(() {
@@ -72,7 +78,8 @@ class _RegistroPaso4PageState extends State<RegistroPaso4Page> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => RegistroPasoFinalPage(data: widget.data),
+                        builder:
+                            (_) => RegistroPasoFinalPage(data: widget.data),
                       ),
                     );
                   }
