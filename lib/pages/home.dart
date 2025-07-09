@@ -17,22 +17,22 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   GoogleMapController? _mapController;
-  LatLng _initialPosition = const LatLng(-16.5000, -68.1500); // fallback
-  final Set<Marker> _markers = {}; // MARCADORES
-
+  LatLng _initialPosition = const LatLng(-16.5000, -68.1500);
+  final Set<Marker> _markers = {};
   List<dynamic> _ordenes = [];
   bool _cargandoOrdenes = true;
+  bool _ordersExpanded = true;
 
   @override
   void initState() {
     super.initState();
     _checkPermissionAndGetLocation();
-    _fetchOrders(); 
+    _fetchOrders();
   }
 
   Future<void> _fetchOrders() async {
     try {
-     final token = Provider.of<UserProvider>(context, listen: false).accessToken;
+      final token = Provider.of<UserProvider>(context, listen: false).accessToken;
       if (token == null) {
         print('Token no disponible');
         return;
@@ -47,7 +47,6 @@ class HomePageState extends State<HomePage> {
       setState(() => _cargandoOrdenes = false);
     }
   }
-
 
   Future<void> _checkPermissionAndGetLocation() async {
     final status = await Permission.location.request();
@@ -88,113 +87,137 @@ class HomePageState extends State<HomePage> {
       drawer: AppDrawer(),
       body: SafeArea(
         child: Builder(
-          builder:
-              (context) => Stack(
+          builder: (context) => Stack(
+            children: [
+              GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _initialPosition,
+                  zoom: 14,
+                ),
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                },
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapType: MapType.normal,
+                trafficEnabled: true,
+                compassEnabled: true,
+                markers: _markers,
+              ),
+
+              // Botón hamburguesa
+              Positioned(
+                top: 16,
+                left: 16,
+                child: FloatingActionButton(
+                  heroTag: 'menu_btn',
+                  mini: true,
+                  backgroundColor: Colors.white,
+                  elevation: 4,
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  child: const Icon(Icons.menu, color: Colors.black),
+                ),
+              ),
+
+              // Botón centrar ubicación
+              Positioned(
+                bottom: _ordersExpanded 
+                    ? MediaQuery.of(context).size.height * 0.5 + 80
+                    : 30,
+                right: 16,
+                child: FloatingActionButton(
+                  heroTag: 'location_btn',
+                  mini: true,
+                  backgroundColor: Colors.white,
+                  elevation: 4,
+                  onPressed: () async {
+                    final position = await Geolocator.getCurrentPosition(
+                      desiredAccuracy: LocationAccuracy.high,
+                    );
+                    final LatLng current = LatLng(
+                      position.latitude,
+                      position.longitude,
+                    );
+                    _mapController?.animateCamera(
+                      CameraUpdate.newLatLngZoom(current, 15),
+                    );
+                  },
+                  child: const Icon(Icons.my_location, color: Colors.black),
+                ),
+              ),
+
+              // Sección de órdenes
+             // Reemplaza el Positioned de la sección de órdenes con este código:
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Column(
                 children: [
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: _initialPosition,
-                      zoom: 14,
-                    ),
-                    onMapCreated: (controller) {
-                      _mapController = controller;
-                    },
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                    mapType: MapType.normal,
-                    trafficEnabled: true,
-                    compassEnabled: true,
-                    markers: _markers,
-                  ),
-
-                  // Botón hamburguesa
-                  Positioned(
-                    top: 16,
-                    left: 16,
-                    child: FloatingActionButton(
-                      heroTag: 'menu_btn',
-                      mini: true,
-                      backgroundColor: Colors.white,
-                      elevation: 4,
-                      onPressed: () {
-                        Scaffold.of(context).openDrawer();
-                      },
-                      child: const Icon(Icons.menu, color: Colors.black),
-                    ),
-                  ),
-
-                  // Botón centrar ubicación
-                  Positioned(
-                    bottom: 30,
-                    right: 16,
-                    child: FloatingActionButton(
-                      heroTag: 'location_btn',
-                      mini: true,
-                      backgroundColor: Colors.white,
-                      elevation: 4,
-                      onPressed: () async {
-                        final position = await Geolocator.getCurrentPosition(
-                          desiredAccuracy: LocationAccuracy.high,
-                        );
-                        final LatLng current = LatLng(
-                          position.latitude,
-                          position.longitude,
-                        );
-                        _mapController?.animateCamera(
-                          CameraUpdate.newLatLngZoom(current, 15),
-                        );
-                      },
-                      child: const Icon(Icons.my_location, color: Colors.black),
-                    ),
-                  ),
-
-                  // Lista de órdenes
-                  if (!_cargandoOrdenes)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 160,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 8,
-                              color: Colors.black26,
-                              offset: Offset(0, -2),
-                            ),
-                          ],
-                        ),
-                        child: _ordenes.isEmpty
-                            ? const Center(child: Text('No hay órdenes disponibles'))
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: _ordenes.length,
-                                itemBuilder: (context, index) {
-                                  final order = _ordenes[index];
-                                  return SizedBox(
-                                      width: 260,
-                                      child: OrderCard(order: order),
-                                    );
-                                },
-                              ),
+                  // Botón para expandir/contraer (ahora con fondo semitransparente)
+                  GestureDetector(
+                    onTap: () => setState(() => _ordersExpanded = !_ordersExpanded),
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3), // Fondo semitransparente
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        _ordersExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
+                        color: Colors.white,
+                        size: 28,
                       ),
                     ),
-
-                  if (_cargandoOrdenes)
-                    const Positioned(
-                      bottom: 20,
-                      left: 0,
-                      right: 0,
-                      child: Center(child: CircularProgressIndicator()),
+                  ),
+                  
+                  // Contenedor de órdenes con fondo transparente
+                  if (_ordersExpanded)
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.0), // Fondo muy transparente
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      child: _cargandoOrdenes
+                          ? Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const CircularProgressIndicator(),
+                              ),
+                            )
+                          : _ordenes.isEmpty
+                              ? Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.7),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Text(
+                                      'No hay órdenes disponibles',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: ListView.builder(
+                                    itemCount: _ordenes.length,
+                                    itemBuilder: (context, index) {
+                                      return OrderCard(order: _ordenes[index]);
+                                    },
+                                  ),
+                                ),
                     ),
                 ],
-
               ),
+            ), ],
+          ),
         ),
       ),
     );
