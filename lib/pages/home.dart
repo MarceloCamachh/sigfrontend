@@ -34,8 +34,12 @@ class HomePageState extends State<HomePage> {
     try {
       final token = Provider.of<UserProvider>(context, listen: false).accessToken;
       if (token == null) {
+        // ignore: avoid_print
         print('Token no disponible');
         return;
+      } else {
+        // ignore: avoid_print
+        print('Token obtenido: $token');
       }
       final orders = await OrderServices().getAllOrders(token: token);
       setState(() {
@@ -43,6 +47,7 @@ class HomePageState extends State<HomePage> {
         _cargandoOrdenes = false;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error al obtener órdenes: $e');
       setState(() => _cargandoOrdenes = false);
     }
@@ -148,7 +153,6 @@ class HomePageState extends State<HomePage> {
                   child: const Icon(Icons.my_location, color: Colors.black),
                 ),
               ),
-
               // Sección de órdenes
              // Reemplaza el Positioned de la sección de órdenes con este código:
             Positioned(
