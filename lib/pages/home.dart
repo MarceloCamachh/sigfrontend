@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:sigfrontend/components/OrderCard.dart';
 import 'package:sigfrontend/components/Sidebar.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/services/orderServices.dart';
@@ -185,35 +186,9 @@ class HomePageState extends State<HomePage> {
                                   itemCount: _ordenes.length,
                                   itemBuilder: (context, index) {
                                     final order = _ordenes[index];
-                                    return Card(
-                                      elevation: 4,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                      ),
-                                      child: Container(
-                                        width: 240,
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Orden #${order["id"]}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text('Estado: ${order["state"]}'),
-                                            Text(
-                                              'Volumen: ${order["volume"]} m³',
-                                            ),
-                                            Text(
-                                              'Total: Bs. ${order["total_payable"]}',
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                    return SizedBox(
+                                      width: 260,
+                                      child: OrderCard(order: order),
                                     );
                                   },
                                 ),
