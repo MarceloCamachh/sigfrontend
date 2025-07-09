@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:sigfrontend/components/CustomAppBar.dart';
 import 'package:sigfrontend/models/registerData.dart';
 import 'package:sigfrontend/services/auth.services.dart';
 import 'package:sigfrontend/pages/home.dart'; // Cambia a tu página de destino real
@@ -24,85 +25,89 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
 
   bool _isLoading = false;
 
- Future<void> _registrar() async {
-  if (!_formKey.currentState!.validate()) return;
+  Future<void> _registrar() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  try {
-    print('Iniciando proceso de registro...'); // Debug 1
-    
-    widget.data.email = _emailController.text;
-    widget.data.password = _passController.text;
-    widget.data.phoneNumber = int.parse(_telefonoController.text);
+    try {
+      print('Iniciando proceso de registro...'); // Debug 1
 
-    print('Datos preparados para registro de usuario...'); // Debug 2
-    
-    // 👤 Registrar usuario
-    final user = await AutenticacionServices().registerUsuario(
-      email: widget.data.email,
-      password: widget.data.password,
-      name: '${widget.data.name} ${widget.data.lastName}',
-      phoneNumber: widget.data.phoneNumber,
-    );
+      widget.data.email = _emailController.text;
+      widget.data.password = _passController.text;
+      widget.data.phoneNumber = int.parse(_telefonoController.text);
 
-    print('Usuario registrado: ${jsonEncode(user)}'); // Debug 3
-    
-    final userId = user?['id'] ?? user?['user']?['id'];
-    if (userId == null) throw Exception("No se pudo obtener el ID del usuario");
+      print('Datos preparados para registro de usuario...'); // Debug 2
 
-    print('ID de usuario obtenido: $userId'); // Debug 4
-    
-    // 🔐 Login automático
-    print('Iniciando proceso de login...'); // Debug 5
-    final loginResponse = await AutenticacionServices().loginUsuario(
-      email: widget.data.email,
-      password: widget.data.password,
-    );
-
-    print('Respuesta de login completa: ${jsonEncode(loginResponse)}'); // Debug 6
-    
-    // 🔐 Obtener token desde access_token (corregido)
-    final token = loginResponse?['access_token'];
-    if (token == null) {
-      print('ERROR: Login response completo: ${jsonEncode(loginResponse)}');
-      throw Exception("Login exitoso pero no se encontró access_token");
-    }
-
-    print('Token obtenido con éxito: $token'); // Debug 7
-
-    // 🚗 Registrar vehículo si no es bici
-    if (widget.data.transport != VehicleType.bike) {
-      print('Preparando registro de vehículo...'); // Debug 8
-      await DeliveryVehicleService().registerVehicle(
-        licensePlate: widget.data.licensePlate!,
-        typeVehicle: widget.data.transport!.toString(),
-        capacity: widget.data.capacity!,
-        userId: userId,
-        token: token,
+      // 👤 Registrar usuario
+      final user = await AutenticacionServices().registerUsuario(
+        email: widget.data.email,
+        password: widget.data.password,
+        name: '${widget.data.name} ${widget.data.lastName}',
+        phoneNumber: widget.data.phoneNumber,
       );
-      print('Vehículo registrado con éxito'); // Debug 9
-    }
 
-    // ✅ Redirigir a Home si todo sale bien
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        FadeThroughPageRoute(page: const HomePage()),
-        (route) => false,
+      print('Usuario registrado: ${jsonEncode(user)}'); // Debug 3
+
+      final userId = user?['id'] ?? user?['user']?['id'];
+      if (userId == null)
+        throw Exception("No se pudo obtener el ID del usuario");
+
+      print('ID de usuario obtenido: $userId'); // Debug 4
+
+      // 🔐 Login automático
+      print('Iniciando proceso de login...'); // Debug 5
+      final loginResponse = await AutenticacionServices().loginUsuario(
+        email: widget.data.email,
+        password: widget.data.password,
       );
-    }
-  } catch (e) {
-    print('ERROR CAPTURADO: $e'); // Debug 10
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al registrarse: ${e.toString()}')),
-    );
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
+
+      print(
+        'Respuesta de login completa: ${jsonEncode(loginResponse)}',
+      ); // Debug 6
+
+      // 🔐 Obtener token desde access_token (corregido)
+      final token = loginResponse?['access_token'];
+      if (token == null) {
+        print('ERROR: Login response completo: ${jsonEncode(loginResponse)}');
+        throw Exception("Login exitoso pero no se encontró access_token");
+      }
+
+      print('Token obtenido con éxito: $token'); // Debug 7
+
+      // 🚗 Registrar vehículo si no es bici
+      if (widget.data.transport != VehicleType.bike) {
+        print('Preparando registro de vehículo...'); // Debug 8
+        await DeliveryVehicleService().registerVehicle(
+          licensePlate: widget.data.licensePlate!,
+          typeVehicle: widget.data.transport!.toString(),
+          capacity: widget.data.capacity!,
+          userId: userId,
+          token: token,
+        );
+        print('Vehículo registrado con éxito'); // Debug 9
+      }
+
+      // ✅ Redirigir a Home si todo sale bien
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          FadeThroughPageRoute(page: const HomePage()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      print('ERROR CAPTURADO: $e'); // Debug 10
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al registrarse: ${e.toString()}')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -114,7 +119,12 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Registro - Paso Final")),
+      appBar: CustomAppBar(
+        title1: 'Registro Paso Final',
+        title2: '',
+        icon: Icons.arrow_back_ios_rounded,
+        onIconPressed: () => Navigator.of(context).pop(),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -128,7 +138,9 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
               const SizedBox(height: 30),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Correo electrónico'),
+                decoration: const InputDecoration(
+                  labelText: 'Correo electrónico',
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Campo requerido';
                   if (!value.contains('@')) return 'Correo inválido';
@@ -141,7 +153,8 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Contraseña'),
                 validator: (value) {
-                  if (value == null || value.length < 6) return 'Mínimo 6 caracteres';
+                  if (value == null || value.length < 6)
+                    return 'Mínimo 6 caracteres';
                   return null;
                 },
               ),
@@ -160,9 +173,9 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
-                      onPressed: _registrar,
-                      child: const Text('Registrarme'),
-                    ),
+                    onPressed: _registrar,
+                    child: const Text('Registrarme'),
+                  ),
             ],
           ),
         ),
