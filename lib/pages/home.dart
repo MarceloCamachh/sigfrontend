@@ -26,15 +26,20 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _checkPermissionAndGetLocation();
-    _fetchOrders(); 
+    _fetchOrders();
   }
 
   Future<void> _fetchOrders() async {
     try {
-     final token = Provider.of<UserProvider>(context, listen: false).accessToken;
+      final token =
+          Provider.of<UserProvider>(context, listen: false).accessToken;
       if (token == null) {
+        // ignore: avoid_print
         print('Token no disponible');
         return;
+      } else {
+        // ignore: avoid_print
+        print('Token obtenido: $token');
       }
       final orders = await OrderServices().getAllOrders(token: token);
       setState(() {
@@ -42,11 +47,11 @@ class HomePageState extends State<HomePage> {
         _cargandoOrdenes = false;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error al obtener órdenes: $e');
       setState(() => _cargandoOrdenes = false);
     }
   }
-
 
   Future<void> _checkPermissionAndGetLocation() async {
     final status = await Permission.location.request();
@@ -167,34 +172,51 @@ class HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
-                        child: _ordenes.isEmpty
-                            ? const Center(child: Text('No hay órdenes disponibles'))
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: _ordenes.length,
-                                itemBuilder: (context, index) {
-                                  final order = _ordenes[index];
-                                  return Card(
-                                    elevation: 4,
-                                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                                    child: Container(
-                                      width: 240,
-                                      padding: const EdgeInsets.all(12),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Orden #${order["id"]}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          const SizedBox(height: 4),
-                                          Text('Estado: ${order["state"]}'),
-                                          Text('Volumen: ${order["volume"]} m³'),
-                                          Text('Total: Bs. ${order["total_payable"]}'),
-                                        ],
+                        child:
+                            _ordenes.isEmpty
+                                ? const Center(
+                                  child: Text('No hay órdenes disponibles'),
+                                )
+                                : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  itemCount: _ordenes.length,
+                                  itemBuilder: (context, index) {
+                                    final order = _ordenes[index];
+                                    return Card(
+                                      elevation: 4,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 8,
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                      child: Container(
+                                        width: 240,
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Orden #${order["id"]}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text('Estado: ${order["state"]}'),
+                                            Text(
+                                              'Volumen: ${order["volume"]} m³',
+                                            ),
+                                            Text(
+                                              'Total: Bs. ${order["total_payable"]}',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                       ),
                     ),
 
@@ -206,7 +228,6 @@ class HomePageState extends State<HomePage> {
                       child: Center(child: CircularProgressIndicator()),
                     ),
                 ],
-
               ),
         ),
       ),
