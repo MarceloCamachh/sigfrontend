@@ -89,16 +89,24 @@ class AppDrawer extends StatelessWidget {
                             ),
                           );
                         }, Icons.person),
-                        const Divider(indent: 0, endIndent: 0),
-                        _alingedText('Gestionar usuarios', () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const UserManagementPage(),
-                            ),
-                          );
-                        }, Icons.supervisor_account_outlined),
+
+                        if (userProvider.role == 'ADMINISTRADOR') ...[
+                          const Divider(indent: 0, endIndent: 0),
+                          _alingedText(
+                            'Gestionar usuarios',
+                            () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => const UserManagementPage(),
+                                ),
+                              );
+                            },
+                            Icons.supervisor_account_outlined,
+                          ),
+                        ],
                         const Divider(indent: 0, endIndent: 0),
                         _alingedText('Configuración', () {
                           Navigator.pop(context);
