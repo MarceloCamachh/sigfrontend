@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sigfrontend/components/CustomAppBar.dart';
 import 'package:sigfrontend/providers/UserService.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 
@@ -93,9 +94,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
     final userService = UserService(userProvider.accessToken!);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestión de usuarios'),
-        backgroundColor: const Color.fromARGB(255, 248, 2, 15),
+      appBar: CustomAppBar(
+        title1: 'Gestión de Usuarios',
+        title2: '',
+        icon: Icons.arrow_back_ios_rounded,
+        onIconPressed: () {
+          Navigator.of(context).pop();
+        },
       ),
       body:
           _isLoading
