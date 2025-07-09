@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sigfrontend/components/WabeClipper.dart';
 import 'package:sigfrontend/pages/home.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
+import 'package:sigfrontend/pages/User/UserManagementPage .dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -72,6 +73,12 @@ class AppDrawer extends StatelessWidget {
                   Icons.settings_outlined,
                   context,
                   const HomePage(),
+                ),
+                _listTile(
+                  'Administrar usuarios',
+                  Icons.supervisor_account_outlined,
+                  context,
+                  const UserManagementPage(),
                 ),
               ],
             ),
