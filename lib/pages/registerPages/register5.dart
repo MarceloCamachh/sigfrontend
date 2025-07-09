@@ -74,9 +74,9 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
     // 🚗 Registrar vehículo si no es bici
     if (widget.data.transport != VehicleType.bike) {
       print('Preparando registro de vehículo...'); // Debug 8
-      await Deliveryvehiclesservices().registrarVehiculo(
+      await DeliveryVehicleService().registerVehicle(
         licensePlate: widget.data.licensePlate!,
-        typeVehicle: widget.data.transport!.asString,
+        typeVehicle: widget.data.transport!.toString(),
         capacity: widget.data.capacity!,
         userId: userId,
         token: token,
