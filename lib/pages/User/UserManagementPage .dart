@@ -108,40 +108,74 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   itemBuilder: (_, index) {
                     final user = _users[index];
                     return Card(
-                      elevation: 4,
+                      elevation: 2,
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
                         leading: CircleAvatar(
-                          backgroundColor:
-                              user['state'] == 'available'
-                                  ? Colors.green
-                                  : Colors.grey,
-                          child: const Icon(Icons.person, color: Colors.white),
+                          backgroundColor: Colors.grey[200],
+                          radius: 26,
+                          child: Icon(
+                            Icons.person,
+                            color:
+                                user['state'] == 'available'
+                                    ? const Color.fromARGB(255, 250, 51, 2)
+                                    : Colors.grey,
+                            size: 28,
+                          ),
                         ),
                         title: Text(
                           user['email'] ?? 'Sin email',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text('Teléfono: ${user['phone_number'] ?? "N/A"}'),
-                            Text(
-                              'Estado: ${user['state']}',
-                              style: TextStyle(
-                                color:
-                                    user['state'] == 'available'
-                                        ? Colors.green
-                                        : Colors.red,
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Teléfono: ${user['phone_number'] ?? "N/A"}',
+                                style: const TextStyle(fontSize: 14),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    user['state'] == 'available'
+                                        ? Icons.check_circle
+                                        : Icons.block,
+                                    size: 16,
+                                    color:
+                                        user['state'] == 'available'
+                                            ? Colors.green
+                                            : Colors.red,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    user['state'] == 'available'
+                                        ? 'Activo'
+                                        : 'Inactivo',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color:
+                                          user['state'] == 'available'
+                                              ? Colors.green
+                                              : Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                         trailing: PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert),
                           onSelected: (value) async {
                             switch (value) {
                               case 'activar':
