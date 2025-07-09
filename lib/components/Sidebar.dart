@@ -78,7 +78,7 @@ class AppDrawer extends StatelessWidget {
                   'Administrar usuarios',
                   Icons.supervisor_account_outlined,
                   context,
-                  const UserManagementPage(), // 👈 tu vista de administración
+                  const UserManagementPage(),
                 ),
               ],
             ),
