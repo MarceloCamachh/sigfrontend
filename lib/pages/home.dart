@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sigfrontend/components/OrderCard.dart';
 import 'package:sigfrontend/components/Sidebar.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
+import 'package:sigfrontend/services/deliveryvehiclesServices.dart';
 import 'package:sigfrontend/services/orderServices.dart';
 
 class HomePage extends StatefulWidget {
@@ -34,12 +35,8 @@ class HomePageState extends State<HomePage> {
     try {
       final token = Provider.of<UserProvider>(context, listen: false).accessToken;
       if (token == null) {
-        // ignore: avoid_print
         print('Token no disponible');
         return;
-      } else {
-        // ignore: avoid_print
-        print('Token obtenido: $token');
       }
       final orders = await OrderServices().getAllOrders(token: token);
       setState(() {
@@ -47,7 +44,6 @@ class HomePageState extends State<HomePage> {
         _cargandoOrdenes = false;
       });
     } catch (e) {
-      // ignore: avoid_print
       print('Error al obtener órdenes: $e');
       setState(() => _cargandoOrdenes = false);
     }
@@ -85,7 +81,26 @@ class HomePageState extends State<HomePage> {
       CameraUpdate.newLatLngZoom(_initialPosition, 15),
     );
   }
+    // En tu función _acceptOrder
+    Future<void> _acceptOrder(String orderId, BuildContext context) async {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final userId = userProvider.id;  // Usamos el getter id directamente
+      final token = userProvider.accessToken;
+      
+      if (userId == null || token == null) {
+        throw Exception('Usuario no autenticado');
+      }
 
+      await DeliveryVehicleService().acceptOrderWithUserVehicle(
+        orderId: orderId,
+        userId: userId,
+        token: token,
+      );
+      
+      // Opcional: Actualizar la lista de órdenes después de aceptar
+      _fetchOrders(); 
+    }
+    
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,6 +168,7 @@ class HomePageState extends State<HomePage> {
                   child: const Icon(Icons.my_location, color: Colors.black),
                 ),
               ),
+
               // Sección de órdenes
              // Reemplaza el Positioned de la sección de órdenes con este código:
             Positioned(
@@ -213,8 +229,11 @@ class HomePageState extends State<HomePage> {
                                   child: ListView.builder(
                                     itemCount: _ordenes.length,
                                     itemBuilder: (context, index) {
-                                      return OrderCard(order: _ordenes[index]);
-                                    },
+                                    final order = _ordenes[index];
+                                        return OrderCard(
+                                          order: order,
+                                          onAcceptOrder: (orderId) => _acceptOrder(orderId, context),
+                                        );                                    },
                                   ),
                                 ),
                     ),

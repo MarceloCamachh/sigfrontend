@@ -2,7 +2,23 @@ import 'package:flutter/material.dart';
 
 class OrderCard extends StatelessWidget {
   final Map<String, dynamic> order;
-  const OrderCard({super.key, required this.order});
+  final Future<void> Function(String orderId) onAcceptOrder;
+  const OrderCard({super.key, required this.order,required this.onAcceptOrder,});
+
+  Future<void> _handleAcceptOrder(BuildContext context) async {
+    final scaffold = ScaffoldMessenger.of(context);
+    
+    try {
+      await onAcceptOrder(order['id']);
+      scaffold.showSnackBar(
+        SnackBar(content: Text('Orden #${order['id']} aceptada')),
+      );
+    } catch (e) {
+      scaffold.showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
 
   Color _getStateColor(String state) {
     switch (state.toUpperCase()) {
@@ -139,11 +155,7 @@ class OrderCard extends StatelessWidget {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Orden #$id aceptada')),
-                    );
-                  },
+                  onPressed:() => _handleAcceptOrder(context),
                   child: const Text(
                     'Aceptar',
                     style: TextStyle(
