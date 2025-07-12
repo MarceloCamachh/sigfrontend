@@ -170,7 +170,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
         title1: 'Gestión de Usuarios',
         title2: '',
         color: Colors.blueAccent,
-        icon: Icons.arrow_back_ios_rounded,
+        icon: Icons.person_add_alt_1_rounded,
         onIconPressed: () => Navigator.of(context).pop(),
       ),
       body:
@@ -196,7 +196,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       vertical: 12,
                     ),
                     child: BottonChange(
-                      colorBack: Colors.black,
+                      colorBack: Colors.green,
                       colorFont: Colors.white,
                       textTile: 'Agregar Usuario',
                       onPressed: () {
