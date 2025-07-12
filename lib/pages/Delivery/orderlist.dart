@@ -30,8 +30,10 @@ class _OrderListState extends State<OrderList> {
 
   Future<void> _fetchOrders() async {
     try {
-      final token = Provider.of<UserProvider>(context, listen: false).accessToken;
+      final token =
+          Provider.of<UserProvider>(context, listen: false).accessToken;
       if (token == null) {
+        // ignore: avoid_print
         print('Token no disponible');
         return;
       }
@@ -41,9 +43,29 @@ class _OrderListState extends State<OrderList> {
         _cargandoOrdenes = false;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error al obtener órdenes: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al cargar órdenes: $e')));
+      }
       setState(() => _cargandoOrdenes = false);
     }
+  }
+
+  List<dynamic> _getFilteredOrders(String userRole, String? userId) {
+    if (userRole == 'ADMINISTRADOR') {
+      return _ordenes;
+    } else if (userRole == 'REPARTIDOR' && userId != null) {
+      return _ordenes.where((order) {
+        final deliveryOrder = order['deliveryOrder'];
+        final assignedUserId =
+            deliveryOrder?['deliveryVehicle']?['user']?['id'];
+        return assignedUserId == userId;
+      }).toList();
+    }
+    return [];
   }
 
   @override
@@ -52,10 +74,15 @@ class _OrderListState extends State<OrderList> {
     final userRole = userProvider.role;
     final userId = userProvider.id;
 
-    if (!widget.ordersExpanded) return const SizedBox.shrink();
+    final filteredOrders = _getFilteredOrders(userRole!, userId);
 
-    return Positioned(
-      bottom: 0,
+    final double carouselHeight = 180;
+    final double titleBarHeight = 50;
+    final double totalHeight = carouselHeight + titleBarHeight;
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      bottom: widget.ordersExpanded ? 0 : -(totalHeight - titleBarHeight),
       left: 0,
       right: 0,
       child: Column(
@@ -63,64 +90,85 @@ class _OrderListState extends State<OrderList> {
           GestureDetector(
             onTap: widget.toggleExpanded,
             child: Container(
-              color: Colors.black.withOpacity(0.3),
-              padding: const EdgeInsets.all(8),
-              child: const Icon(
-                Icons.keyboard_arrow_down,
-                color: Colors.white,
-                size: 28,
+              // ignore: deprecated_member_use
+              color: Colors.black.withOpacity(0.5),
+              padding: const EdgeInsets.symmetric(
+                vertical: 8.0,
+                horizontal: 16.0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.ordersExpanded ? 'Órdenes Asignadas' : 'Ver Órdenes',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(
+                    widget.ordersExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_up,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ],
               ),
             ),
           ),
           Container(
-            height: MediaQuery.of(context).size.height * 0.5,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.0),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: _cargandoOrdenes
-                ? Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const CircularProgressIndicator(),
-                    ),
-                  )
-                : _ordenes.isEmpty
+            height: carouselHeight, // Altura fija
+            width: double.infinity,
+            // ignore: deprecated_member_use
+            decoration: BoxDecoration(color: Colors.black.withOpacity(0.7)),
+            clipBehavior: Clip.hardEdge,
+            child:
+                _cargandoOrdenes
                     ? Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'No hay órdenes disponibles',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          // ignore: deprecated_member_use
+                          color: Colors.white.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: ListView.builder(
-                          itemCount: _ordenes.length,
-                          itemBuilder: (context, index) {
-                            final order = _ordenes[index];
-                            final deliveryOrder = order['deliveryOrder'];
-                            final assignedUserId = deliveryOrder?['deliveryVehicle']?['user']?['id'];
-
-                            final isVisible = userRole == 'ADMINISTRADOR' ||
-                                (userRole == 'REPARTIDOR' && assignedUserId == userId);
-
-                            return isVisible
-                                ? OrderCard(order: order)
-                                : const SizedBox.shrink();
-                          },
+                        child: const CircularProgressIndicator(),
+                      ),
+                    )
+                    : filteredOrders.isEmpty
+                    ? Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'No hay órdenes disponibles para tu rol.',
+                          style: TextStyle(fontSize: 16, color: Colors.black87),
                         ),
                       ),
+                    )
+                    : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 10.0,
+                      ),
+                      itemCount: filteredOrders.length,
+                      itemBuilder: (context, index) {
+                        final order = filteredOrders[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: OrderCard(order: order),
+                          ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
