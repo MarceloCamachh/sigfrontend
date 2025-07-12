@@ -37,8 +37,8 @@ class _RegistroVehiculoPageState extends State<RegistroVehiculoPage> {
       appBar: CustomAppBar(
         title1: 'Registro $nombreVehiculo',
         title2: '',
-        color: const Color(0xFFf40008),
-        icon: Icons.arrow_back_ios_rounded,
+        color: Colors.blueAccent,
+        icon: Icons.motorcycle_sharp,
         onIconPressed: () => Navigator.of(context).pop(),
       ),
       body: Padding(

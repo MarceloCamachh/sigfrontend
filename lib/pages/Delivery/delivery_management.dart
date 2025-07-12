@@ -109,7 +109,7 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
         title1: 'Gestión de Entregas',
         title2: '',
         color: const Color.fromARGB(255, 223, 122, 27),
-        icon: Icons.arrow_back_ios_rounded,
+        icon: Icons.local_shipping_rounded,
         onIconPressed: () => Navigator.of(context).pop(),
       ),
       body:

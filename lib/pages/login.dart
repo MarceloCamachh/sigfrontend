@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:sigfrontend/components/BottonLoading.dart';
 import 'package:sigfrontend/components/FadeThroughPageRoute.dart';
 import 'package:sigfrontend/pages/home.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
@@ -89,60 +90,22 @@ class LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 Spacer(),
-                GestureDetector(
-                  onTap:
-                      _isLoading
-                          ? null
-                          : () {
-                            if (_formKey.currentState!.validate()) {
-                              setState(() => _isLoading = true);
-                              _login();
-                            }
-                          },
-                  child: Container(
-                    width: width * 0.9,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: _isLoading ? Colors.grey : Colors.black,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Center(
-                      child:
-                          _isLoading
-                              ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    'Cargando...',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
-                              )
-                              : const Text(
-                                'Iniciar Sesión',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                ),
-                              ),
-                    ),
-                  ),
+                BottonLoading(
+                  width: width,
+                  height: 55,
+                  fontSize: 20,
+                  colorBack: Colors.black,
+                  colorFont: Colors.white,
+                  colorBackLoading: Colors.grey,
+                  textTitle: 'Iniciar Sesión',
+                  textLoading: 'Cargando...',
+                  isLoading: _isLoading, // Pasamos el estado de carga del padre
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      // No necesitas setState aquí, _login ya lo hace
+                      _login();
+                    }
+                  },
                 ),
                 const SizedBox(height: 30),
               ],

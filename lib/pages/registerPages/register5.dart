@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:sigfrontend/components/BottonLoading.dart';
 import 'package:sigfrontend/components/CustomAppBar.dart';
 import 'package:sigfrontend/models/registerData.dart';
 import 'package:sigfrontend/services/auth.services.dart';
@@ -118,12 +119,13 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: CustomAppBar(
         title1: 'Registro Paso Final',
         title2: '',
-        color: const Color(0xFFf40008),
-        icon: Icons.arrow_back_ios_rounded,
+        color: Colors.blueAccent,
+        icon: Icons.app_registration_rounded,
         onIconPressed: () => Navigator.of(context).pop(),
       ),
       body: Padding(
@@ -171,12 +173,22 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
                 },
               ),
               const Spacer(),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                    onPressed: _registrar,
-                    child: const Text('Registrarme'),
-                  ),
+              BottonLoading(
+                width: width * 0.9,
+                height: 55,
+                fontSize: 20,
+                colorBack: Colors.black,
+                colorFont: Colors.white,
+                colorBackLoading: Colors.grey,
+                textTitle: 'Registrar',
+                textLoading: 'Registrando...',
+                isLoading: _isLoading,
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _registrar();
+                  }
+                },
+              ),
             ],
           ),
         ),

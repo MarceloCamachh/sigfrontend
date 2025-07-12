@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:sigfrontend/components/CustomAppBar.dart';
 
 class MapaInternoPage extends StatefulWidget {
   final double lat;
@@ -28,34 +29,49 @@ class _MapaInternoPageState extends State<MapaInternoPage> {
         markerId: const MarkerId('destino'),
         position: _location,
         infoWindow: const InfoWindow(title: 'Destino'),
-      )
+      ),
     };
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ubicación de la orden'),
-        backgroundColor: Colors.indigo,
+      appBar: CustomAppBar(
+        title1: 'Ubicación del Pedido',
+        title2: '',
+        color: Colors.indigo,
+        icon: Icons.location_on,
+        onIconPressed: () => Navigator.of(context).pop(),
       ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: _location,
-          zoom: 16,
+      body: SafeArea(
+        child: Builder(
+          builder:
+              (context) => Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: _location,
+                      zoom: 16,
+                    ),
+                    markers: _markers,
+                    onMapCreated: (controller) {
+                      _mapController = controller;
+                    },
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: true,
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        _mapController.animateCamera(
+                          CameraUpdate.newLatLngZoom(_location, 16),
+                        );
+                      },
+                      child: const Icon(Icons.center_focus_strong),
+                    ),
+                  ),
+                ],
+              ),
         ),
-        markers: _markers,
-        onMapCreated: (controller) {
-          _mapController = controller;
-        },
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: true,
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.indigo,
-        onPressed: () {
-          _mapController.animateCamera(
-            CameraUpdate.newLatLngZoom(_location, 16),
-          );
-        },
-        child: const Icon(Icons.center_focus_strong),
       ),
     );
   }

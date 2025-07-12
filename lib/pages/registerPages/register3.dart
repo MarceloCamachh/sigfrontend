@@ -34,8 +34,8 @@ class RegistroPaso3Page extends StatelessWidget {
       appBar: CustomAppBar(
         title1: 'Registro - Paso 3',
         title2: '',
-        color: const Color(0xFFf40008),
-        icon: Icons.arrow_back_ios_rounded,
+        color: Colors.blueAccent,
+        icon: Icons.app_registration_rounded,
         onIconPressed: () => Navigator.of(context).pop(),
       ),
       body: Padding(
