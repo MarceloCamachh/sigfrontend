@@ -5,8 +5,8 @@ import 'package:sigfrontend/utils/constants.dart';
 class DeliveryOrderService {
   final String _baseUrl = '${Constantes.urlRender}/delivery-orders';
 
-  // Crear una nueva orden de entrega
-  Future<Map<String, dynamic>> createDeliveryOrder({
+  /// Crea una nueva orden de entrega y asigna un repartidor
+  Future<Map<String, dynamic>> assignDeliveryVehicleToOrder({
     required String orderId,
     required String deliveryVehicleId,
     required String token,
@@ -27,14 +27,14 @@ class DeliveryOrderService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error al crear orden de entrega: ${response.body}');
+        throw Exception('Error al asignar vehículo: ${response.body}');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
     }
   }
 
-  // Actualizar estado de una orden de entrega
+  /// Actualiza el estado de una orden de entrega (ej. IN_TRANSIT, DELIVERED)
   Future<Map<String, dynamic>> updateDeliveryOrderState({
     required String id,
     required String deliveryState,
@@ -62,7 +62,7 @@ class DeliveryOrderService {
     }
   }
 
-  // Obtener todas las órdenes de entrega
+  /// Obtiene todas las órdenes de entrega registradas
   Future<List<dynamic>> getAllDeliveryOrders({required String token}) async {
     try {
       final response = await http.get(
@@ -83,7 +83,7 @@ class DeliveryOrderService {
     }
   }
 
-  // Obtener una orden de entrega específica por ID
+  /// Obtiene una orden de entrega específica por su ID
   Future<Map<String, dynamic>> getDeliveryOrderById({
     required String id,
     required String token,

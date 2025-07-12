@@ -66,6 +66,32 @@ class DeliveryVehicleService {
     }
   }
 
+  // Actualizar datos del vehículo por su ID
+  Future<Map<String, dynamic>> updateVehicle(
+    String vehicleId,
+    Map<String, dynamic> data,
+    String token,
+  ) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$_baseUrl/$vehicleId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception('Error al actualizar vehículo: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al actualizar vehículo: $e');
+    }
+  }
+
   // Establecer vehículo como operacional
   Future<Map<String, dynamic>> setVehicleOperational({
     required String userId,
@@ -94,23 +120,21 @@ class DeliveryVehicleService {
     }
   }
 
-  // Actualizar DeliveryOrderService para incluir vehicleId del usuario
+  // Aceptar pedido usando el vehículo del usuario
   Future<Map<String, dynamic>> acceptOrderWithUserVehicle({
     required String orderId,
     required String userId,
     required String token,
   }) async {
     try {
-      // 1. Obtener el vehículo del usuario
       final vehicle = await getVehicleByUserId(userId: userId, token: token);
-      
+
       if (vehicle.isEmpty || vehicle['id'] == null) {
         throw Exception('El usuario no tiene un vehículo registrado');
       }
 
       final vehicleId = vehicle['id'] as String;
 
-      // 2. Crear la orden de entrega
       final deliveryOrder = await http.post(
         Uri.parse('${Constantes.urlRender}/delivery-orders'),
         headers: {
@@ -132,8 +156,58 @@ class DeliveryVehicleService {
       throw Exception('Error al aceptar orden: $e');
     }
   }
+
+  // Obtener todos los vehículos registrados
+  Future<List<Map<String, dynamic>>> getAllVehicles(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse(_baseUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Error al obtener vehículos: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al obtener vehículos: $e');
+    }
+  }
+
+  // ✅ Nuevo: Asignar un pedido a un vehículo específico
+  Future<void> assignOrderToVehicle({
+    required String orderId,
+    required String vehicleId,
+    required String token,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${Constantes.urlRender}/delivery-orders'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'orderId': orderId,
+          'deliveryVehicleId': vehicleId,
+        }),
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        throw Exception('Error al asignar orden: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al asignar orden: $e');
+    }
+  }
 }
 
+// Enum para tipo de vehículo
 enum VehicleType {
   bike('BIKE'),
   motorcycle('MOTORCYCLE'),
@@ -162,6 +236,7 @@ enum VehicleType {
   String toString() => value;
 }
 
+// Enum para estado del vehículo
 enum VehicleState {
   operational('OPERATIONAL'),
   maintenance('MAINTENANCE'),

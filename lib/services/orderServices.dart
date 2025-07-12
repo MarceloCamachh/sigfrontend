@@ -5,6 +5,7 @@ import 'package:sigfrontend/utils/constants.dart';
 class OrderServices {
   final String _baseUrl = '${Constantes.urlRender}/orders';
 
+  // ✅ Obtener todas las órdenes
   Future<List<dynamic>> getAllOrders({required String token}) async {
     try {
       final response = await http.get(
@@ -25,7 +26,7 @@ class OrderServices {
     }
   }
 
-  // ✅ Obtener una orden por ID
+  // ✅ Obtener orden por ID
   Future<Map<String, dynamic>> getOrderById(String id, {required String token}) async {
     try {
       final response = await http.get(

@@ -1,37 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:sigfrontend/components/mapainternopage.dart';
 
 class OrderCard extends StatelessWidget {
   final Map<String, dynamic> order;
-  final Future<void> Function(String orderId) onAcceptOrder;
-  const OrderCard({super.key, required this.order,required this.onAcceptOrder,});
 
-  Future<void> _handleAcceptOrder(BuildContext context) async {
-    final scaffold = ScaffoldMessenger.of(context);
-    
-    try {
-      await onAcceptOrder(order['id']);
-      scaffold.showSnackBar(
-        SnackBar(content: Text('Orden #${order['id']} aceptada')),
-      );
-    } catch (e) {
-      scaffold.showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
-  }
+  const OrderCard({
+    super.key,
+    required this.order,
+  });
 
   Color _getStateColor(String state) {
     switch (state.toUpperCase()) {
       case 'PENDING':
-        return Colors.orange;
-      case 'IN_PROGRESS':
+        return Colors.black;
+      case 'IN_TRANSIT':
         return Colors.blue;
       case 'DELIVERED':
         return Colors.green;
-      case 'CANCELLED':
-        return Colors.red;
       default:
-        return Colors.grey;
+        return Colors.white;
     }
   }
 
@@ -39,46 +26,58 @@ class OrderCard extends StatelessWidget {
     switch (state.toUpperCase()) {
       case 'PENDING':
         return 'Pendiente';
-      case 'IN_PROGRESS':
-        return 'En camino';
+      case 'IN_TRANSIT':
+        return 'En tránsito';
       case 'DELIVERED':
         return 'Entregado';
-      case 'CANCELLED':
-        return 'Cancelado';
       default:
         return state;
     }
   }
 
+  void _mostrarMapaInterno(BuildContext context, double lat, double lng) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MapaInternoPage(lat: lat, lng: lng),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final id = order["id"];
-    final state = order["state"] ?? "SIN ESTADO";
+    final state = order["state"] ?? "PENDING";
     final volume = order["volume"] ?? 0;
     final totalPayable = order["total_payable"] ?? 0;
+    final location = order["location"];
+    final deliveryOrder = order["deliveryOrder"];
 
     final stateText = _getStateText(state);
     final stateColor = _getStateColor(state);
 
+    final deliveryVehicle = deliveryOrder != null ? deliveryOrder["deliveryVehicle"] : null;
+    final deliveryUser = deliveryVehicle != null ? deliveryVehicle["user"] : null;
+
     return Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.red.shade600, // Ligera transparencia
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black, // Sombra más pronunciada
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: state == "PENDING" ? Colors.indigo.shade700 : Colors.red.shade700,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Primera fila: ID y estado
+            // Cabecera
             Row(
               children: [
                 const Icon(Icons.local_shipping, size: 20, color: Colors.white),
@@ -86,26 +85,18 @@ class OrderCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Orden #$id',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: stateColor.withOpacity(0.2),
+                    color: stateColor.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     stateText,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
               ],
@@ -113,59 +104,81 @@ class OrderCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Segunda fila: Información importante
+            // Info principal
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Bs. ${totalPayable.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.view_in_ar, size: 16, color: Colors.white),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$volume m³',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                Text(
+                  'Bs. ${totalPayable.toStringAsFixed(2)}',
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-
-                // Botón de acción
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.red.shade600,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                  onPressed:() => _handleAcceptOrder(context),
-                  child: const Text(
-                    'Aceptar',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
+                Text(
+                  '$volume m³',
+                  style: const TextStyle(color: Colors.white70),
                 ),
               ],
             ),
+
+            const SizedBox(height: 12),
+
+            // Ubicación
+            if (location != null &&
+                location["latitude"] != null &&
+                location["longitude"] != null)
+              Row(
+                children: [
+                  const Icon(Icons.location_pin, color: Colors.white),
+                  Expanded(
+                    child: Text(
+                      '(${location["latitude"]}, ${location["longitude"]})',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.map_outlined, color: Colors.white),
+                    onPressed: () => _mostrarMapaInterno(
+                      context,
+                      location["latitude"],
+                      location["longitude"],
+                    ),
+                  ),
+                ],
+              ),
+
+            if (location != null &&
+                (location["address"] != null || location["reference"] != null))
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (location["address"] != null)
+                    Text('Dirección: ${location["address"]}', style: const TextStyle(color: Colors.white)),
+                  if (location["reference"] != null)
+                    Text('Referencia: ${location["reference"]}', style: const TextStyle(color: Colors.white70)),
+                ],
+              ),
+
+            const SizedBox(height: 12),
+
+            // Repartidor asignado
+            if (deliveryVehicle != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(color: Colors.white54),
+                  Text(
+                    '🛵 Repartidor asignado:',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  if (deliveryUser != null) ...[
+                    Text('Nombre: ${deliveryUser["name"] ?? "(sin nombre)"}', style: const TextStyle(color: Colors.white70)),
+                    Text('Correo: ${deliveryUser["email"] ?? "(sin correo)"}', style: const TextStyle(color: Colors.white70)),
+                    Text('Teléfono: ${deliveryUser["phone_number"] ?? "(sin teléfono)"}', style: const TextStyle(color: Colors.white70)),
+                  ] else ...[
+                    Text('Placa: ${deliveryVehicle["license_plate"] ?? "(sin placa)"}', style: const TextStyle(color: Colors.white70)),
+                  ],
+                  Text('Estado de entrega: ${deliveryOrder["delivery_state"] ?? "N/A"}', style: const TextStyle(color: Colors.white70)),
+                ],
+              ),
           ],
         ),
       ),
