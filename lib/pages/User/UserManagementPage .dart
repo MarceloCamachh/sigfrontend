@@ -169,6 +169,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
       appBar: CustomAppBar(
         title1: 'Gestión de Usuarios',
         title2: '',
+        color: Colors.blueAccent,
         icon: Icons.arrow_back_ios_rounded,
         onIconPressed: () => Navigator.of(context).pop(),
       ),
