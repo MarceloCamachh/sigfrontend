@@ -7,6 +7,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title2;
   final IconData icon;
   final VoidCallback onIconPressed;
+  final Color color;
 
   const CustomAppBar({
     super.key,
@@ -14,6 +15,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title2,
     required this.icon,
     required this.onIconPressed,
+    required this.color,
   });
 
   @override
@@ -21,10 +23,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       flexibleSpace: ClipPath(
         clipper: WaveClipper(),
-        child: Container(
-          height: double.infinity,
-          color: const Color(0xFFf40008),
-        ),
+        child: Container(height: double.infinity, color: color),
       ),
       toolbarHeight: 110,
       backgroundColor: Colors.transparent,

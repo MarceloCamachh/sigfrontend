@@ -34,6 +34,7 @@ class _RegistroPaso4PageState extends State<RegistroPaso4Page> {
       appBar: CustomAppBar(
         title1: 'Registro Biciclicleta',
         title2: '',
+        color: const Color(0xFFf40008),
         icon: Icons.arrow_back_ios_rounded,
         onIconPressed: () => Navigator.of(context).pop(),
       ),
