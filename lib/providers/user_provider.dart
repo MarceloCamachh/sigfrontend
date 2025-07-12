@@ -54,6 +54,13 @@ class UserProvider with ChangeNotifier {
       _accessToken = data['access_token'] as String?;
       _refreshToken = data['refresh_token'] as String?;
 
+      await _storage.write(key: 'id', value: _id);
+      await _storage.write(key: 'email', value: _email);
+      // Convertir int a String para guardarlo
+      await _storage.write(key: 'phoneNumber', value: _phoneNumber?.toString());
+      await _storage.write(key: 'state', value: _state);
+      await _storage.write(key: 'role', value: _role);
+      // Guardar los tokens de acceso y actualización
       if (_accessToken != null) {
         await _storage.write(key: 'access_token', value: _accessToken);
         await _storage.write(
@@ -76,14 +83,18 @@ class UserProvider with ChangeNotifier {
     try {
       _accessToken = await _storage.read(key: 'access_token');
       _refreshToken = await _storage.read(key: 'refresh_token');
+      // Cargar los demás datos del usuario desde el almacenamiento
+      _id = await _storage.read(key: 'id');
+      _email = await _storage.read(key: 'email');
+      final phoneNumberStr = await _storage.read(key: 'phoneNumber');
+      _phoneNumber =
+          phoneNumberStr != null ? int.tryParse(phoneNumberStr) : null;
+      _state = await _storage.read(key: 'state');
+      _role = await _storage.read(key: 'role');
 
       if (_accessToken != null) {
         final decodedToken = _decodeJwt(_accessToken!);
         if (decodedToken != null) {
-          _id = decodedToken['sub'] as String?;
-          _email = decodedToken['email'] as String?;
-          // ignore: avoid_print
-          print('Token cargado y decodificado:');
           // ignore: avoid_print
           print(JsonEncoder.withIndent('  ').convert(decodedToken));
         }
@@ -108,18 +119,11 @@ class UserProvider with ChangeNotifier {
       final difference = now.difference(loginDate);
 
       if (difference.inDays < 7) {
-        _accessToken = accessToken;
-        _refreshToken = await _storage.read(key: 'refresh_token');
-        final decodedToken = _decodeJwt(accessToken);
-        if (decodedToken != null) {
-          _id = decodedToken['sub'] as String?;
-          _email = decodedToken['email'] as String?;
-        }
-        notifyListeners();
+        await loadUserFromStorage();
         return true;
       }
     }
-
+    await clearUser();
     return false;
   }
 
