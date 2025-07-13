@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sigfrontend/components/mapainternopage.dart';
 
 class OrderCard extends StatelessWidget {
   final Map<String, dynamic> order;
@@ -7,7 +6,10 @@ class OrderCard extends StatelessWidget {
 
   const OrderCard({super.key, required this.order, required this.onVerEnMapa});
 
-  Color _getStateColor(String state) {
+  Color _getStateColor(String state, bool isAssigned) {
+    if (isAssigned) {
+      return Colors.orange;
+    }
     switch (state.toUpperCase()) {
       case 'PENDING':
         return Colors.black;
@@ -20,7 +22,10 @@ class OrderCard extends StatelessWidget {
     }
   }
 
-  String _getStateText(String state) {
+  String _getStateText(String state, bool isAssigned) {
+    if (isAssigned) {
+      return 'Asignado';
+    }
     switch (state.toUpperCase()) {
       case 'PENDING':
         return 'Pendiente';
@@ -33,13 +38,6 @@ class OrderCard extends StatelessWidget {
     }
   }
 
-  void _mostrarMapaInterno(BuildContext context, double lat, double lng) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => MapaInternoPage(lat: lat, lng: lng)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final id = order["id"];
@@ -47,20 +45,18 @@ class OrderCard extends StatelessWidget {
     final volume = order["volume"] ?? 0;
     final totalPayable = order["total_payable"] ?? 0;
     final location = order["location"];
-    final deliveryOrder = order["deliveryOrder"];
+    final deliveryOrders = order["deliveryOrders"] ?? [];
+    final isAssigned =
+        deliveryOrders.isNotEmpty &&
+        deliveryOrders.any((d) => d["delivery_state"] == "assigned");
 
-    final stateText = _getStateText(state);
-    final stateColor = _getStateColor(state);
-
-    final deliveryVehicle =
-        deliveryOrder != null ? deliveryOrder["deliveryVehicle"] : null;
-    final deliveryUser =
-        deliveryVehicle != null ? deliveryVehicle["user"] : null;
+    final stateText = _getStateText(state, isAssigned);
+    final stateColor = _getStateColor(state, isAssigned);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: state == "PENDING" ? Colors.indigo.shade700 : Colors.red.shade700,
+        color: isAssigned ? Colors.orange.shade700 : Colors.red.shade700,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3)),
@@ -88,7 +84,10 @@ class OrderCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: stateColor.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(8),
@@ -112,10 +111,15 @@ class OrderCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text('$volume m³', style: const TextStyle(color: Colors.white70)),
+                Text(
+                  '$volume m³',
+                  style: const TextStyle(color: Colors.white70),
+                ),
               ],
             ),
-            if (location != null && location["latitude"] != null && location["longitude"] != null)
+            if (location != null &&
+                location["latitude"] != null &&
+                location["longitude"] != null)
               Row(
                 children: [
                   const Icon(Icons.location_pin, color: Colors.white),
@@ -130,6 +134,18 @@ class OrderCard extends StatelessWidget {
                     onPressed: () => onVerEnMapa(order),
                   ),
                 ],
+              ),
+            if (isAssigned)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Asignado a repartidor',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ),
           ],
         ),
