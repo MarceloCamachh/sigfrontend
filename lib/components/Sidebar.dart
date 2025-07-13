@@ -5,6 +5,7 @@ import 'package:sigfrontend/pages/Delivery/delivery_management.dart';
 import 'package:sigfrontend/pages/User/UserDeliveryPage.dart';
 import 'package:sigfrontend/pages/home.dart';
 import 'package:sigfrontend/pages/splash_screen.dart';
+import 'package:sigfrontend/pages/stripe_prueba.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/pages/User/UserManagementPage .dart';
 import 'package:sigfrontend/pages/User/UserProfilePage.dart';
@@ -102,6 +103,16 @@ class AppDrawer extends StatelessWidget {
                             ),
                           );
                         }, Icons.motorcycle_sharp),
+                        const Divider(indent: 0, endIndent: 0),
+                        _alingedText('Historial de Pagos', () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PruebaPago(),
+                            ),
+                          );
+                        }, Icons.history),
 
                         if (userProvider.role == 'ADMINISTRADOR') ...[
                           const Divider(indent: 0, endIndent: 0),
