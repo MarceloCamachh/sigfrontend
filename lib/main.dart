@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:sigfrontend/pages/splash_screen.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
+import 'package:sigfrontend/utils/constants.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey = Constantes.publicKey;
+
+  try {
+    await Stripe.instance.applySettings();
+  } catch (e) {
+    print('Error inicializando Stripe: $e');
+  }
+
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
