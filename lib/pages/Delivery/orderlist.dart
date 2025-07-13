@@ -46,8 +46,9 @@ class _OrderListState extends State<OrderList> {
     } catch (e) {
       print('Error al obtener órdenes: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error al cargar órdenes: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al cargar órdenes: $e')));
       }
       setState(() => _cargandoOrdenes = false);
     }
@@ -75,7 +76,7 @@ class _OrderListState extends State<OrderList> {
 
     final filteredOrders = _getFilteredOrders(userRole!, userId);
 
-    final double carouselHeight = 180;
+    final double carouselHeight = 200;
     final double titleBarHeight = 50;
     final double totalHeight = carouselHeight + titleBarHeight;
 
@@ -121,52 +122,53 @@ class _OrderListState extends State<OrderList> {
             width: double.infinity,
             decoration: BoxDecoration(color: Colors.black.withOpacity(0.7)),
             clipBehavior: Clip.hardEdge,
-            child: _cargandoOrdenes
-                ? Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const CircularProgressIndicator(),
-                    ),
-                  )
-                : filteredOrders.isEmpty
+            child:
+                _cargandoOrdenes
                     ? Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'No hay órdenes disponibles',
-                            style: TextStyle(fontSize: 16, color: Colors.black87),
-                          ),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      )
-                    : ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 10.0,
-                        ),
-                        itemCount: filteredOrders.length,
-                        itemBuilder: (context, index) {
-                          final order = filteredOrders[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              child: OrderCard(
-                                order: order,
-                                onVerEnMapa: widget.onVerEnMapa,
-                              ),
-                            ),
-                          );
-                        },
+                        child: const CircularProgressIndicator(),
                       ),
+                    )
+                    : filteredOrders.isEmpty
+                    ? Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'No hay órdenes disponibles',
+                          style: TextStyle(fontSize: 16, color: Colors.black87),
+                        ),
+                      ),
+                    )
+                    : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 10.0,
+                      ),
+                      itemCount: filteredOrders.length,
+                      itemBuilder: (context, index) {
+                        final order = filteredOrders[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: OrderCard(
+                              order: order,
+                              onVerEnMapa: widget.onVerEnMapa,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
