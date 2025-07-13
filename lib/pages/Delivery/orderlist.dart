@@ -7,11 +7,13 @@ import 'package:sigfrontend/services/orderServices.dart';
 class OrderList extends StatefulWidget {
   final bool ordersExpanded;
   final VoidCallback toggleExpanded;
+  final Function(Map<String, dynamic>) onVerEnMapa;
 
   const OrderList({
     super.key,
     required this.ordersExpanded,
     required this.toggleExpanded,
+    required this.onVerEnMapa,
   });
 
   @override
@@ -33,7 +35,6 @@ class _OrderListState extends State<OrderList> {
       final token =
           Provider.of<UserProvider>(context, listen: false).accessToken;
       if (token == null) {
-        // ignore: avoid_print
         print('Token no disponible');
         return;
       }
@@ -43,12 +44,10 @@ class _OrderListState extends State<OrderList> {
         _cargandoOrdenes = false;
       });
     } catch (e) {
-      // ignore: avoid_print
       print('Error al obtener órdenes: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error al cargar órdenes: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error al cargar órdenes: $e')));
       }
       setState(() => _cargandoOrdenes = false);
     }
@@ -90,7 +89,6 @@ class _OrderListState extends State<OrderList> {
           GestureDetector(
             onTap: widget.toggleExpanded,
             child: Container(
-              // ignore: deprecated_member_use
               color: Colors.black.withOpacity(0.5),
               padding: const EdgeInsets.symmetric(
                 vertical: 8.0,
@@ -119,56 +117,56 @@ class _OrderListState extends State<OrderList> {
             ),
           ),
           Container(
-            height: carouselHeight, // Altura fija
+            height: carouselHeight,
             width: double.infinity,
-            // ignore: deprecated_member_use
             decoration: BoxDecoration(color: Colors.black.withOpacity(0.7)),
             clipBehavior: Clip.hardEdge,
-            child:
-                _cargandoOrdenes
-                    ? Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          // ignore: deprecated_member_use
-                          color: Colors.white.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const CircularProgressIndicator(),
+            child: _cargandoOrdenes
+                ? Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    )
-                    : filteredOrders.isEmpty
-                    ? Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'No hay órdenes disponibles para tu rol.',
-                          style: TextStyle(fontSize: 16, color: Colors.black87),
-                        ),
-                      ),
-                    )
-                    : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 10.0,
-                      ),
-                      itemCount: filteredOrders.length,
-                      itemBuilder: (context, index) {
-                        final order = filteredOrders[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            child: OrderCard(order: order),
-                          ),
-                        );
-                      },
+                      child: const CircularProgressIndicator(),
                     ),
+                  )
+                : filteredOrders.isEmpty
+                    ? Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'No hay órdenes disponibles',
+                            style: TextStyle(fontSize: 16, color: Colors.black87),
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 10.0,
+                        ),
+                        itemCount: filteredOrders.length,
+                        itemBuilder: (context, index) {
+                          final order = filteredOrders[index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              child: OrderCard(
+                                order: order,
+                                onVerEnMapa: widget.onVerEnMapa,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),

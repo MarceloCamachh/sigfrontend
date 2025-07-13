@@ -1,4 +1,3 @@
-// archivo: homepage.dart
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,6 +18,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   LatLng? _ubicacionInicial;
   bool _ordersExpanded = true;
+  LatLng? _selectedOrderLocation;
 
   @override
   void initState() {
@@ -44,6 +44,18 @@ class HomePageState extends State<HomePage> {
     });
   }
 
+  void _verUbicacionPedido(Map<String, dynamic> order) {
+    final location = order["location"];
+    if (location != null &&
+        location["latitude"] != null &&
+        location["longitude"] != null) {
+      setState(() {
+        _selectedOrderLocation =
+            LatLng(location["latitude"], location["longitude"]);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userRole = Provider.of<UserProvider>(context).role;
@@ -57,6 +69,7 @@ class HomePageState extends State<HomePage> {
               MapWidget(
                 ubicacionInicial: _ubicacionInicial,
                 ordersExpanded: _ordersExpanded,
+                selectedOrderLocation: _selectedOrderLocation,
               ),
               Positioned(
                 top: 16,
@@ -71,9 +84,13 @@ class HomePageState extends State<HomePage> {
                 ),
               ),
               if (userRole == 'ADMINISTRADOR' || userRole == 'REPARTIDOR')
-                OrderList(ordersExpanded: _ordersExpanded, toggleExpanded: () {
-                  setState(() => _ordersExpanded = !_ordersExpanded);
-                }),
+                OrderList(
+                  ordersExpanded: _ordersExpanded,
+                  toggleExpanded: () {
+                    setState(() => _ordersExpanded = !_ordersExpanded);
+                  },
+                  onVerEnMapa: _verUbicacionPedido,
+                ),
             ],
           ),
         ),

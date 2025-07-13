@@ -127,7 +127,11 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      OrderCard(order: order),
+                      OrderCard(
+                        order: order,
+                        onVerEnMapa: (_) {}, // función vacía
+                      ),
+
                       const SizedBox(height: 8),
 
                       CustomDeliveryDropdown(
