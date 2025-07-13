@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sigfrontend/components/ContainerIcon.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
+import 'package:sigfrontend/utils/constants.dart';
 
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});
@@ -15,7 +17,15 @@ class UserProfilePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Perfil'),
+        title: const Text(
+          'Mi Perfil',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: const Color(0xFFf40008),
       ),
       body: SingleChildScrollView(
@@ -70,7 +80,11 @@ class UserProfilePage extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-        leading: Icon(icon, color: Color(0xFFf40008)),
+        leading: ContainerIcon(
+          icon: icon,
+          iconColor: Constantes.colorSecondary,
+          containerColor: const Color.fromARGB(18, 0, 0, 0),
+        ),
         title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(value),
       ),
