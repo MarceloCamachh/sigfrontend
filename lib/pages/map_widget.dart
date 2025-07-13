@@ -27,6 +27,9 @@ class _MapWidgetState extends State<MapWidget> {
   final String _apiKey =
       'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImNmNDU1MDYwZjcyZDRiYzI5NTc4ZWYxN2YyNTE2YTc3IiwiaCI6Im11cm11cjY0In0=';
 
+  // Último punto accesible de la ruta
+  LatLng? puntoEncuentro;
+
   @override
   void initState() {
     super.initState();
@@ -61,9 +64,22 @@ class _MapWidgetState extends State<MapWidget> {
         Marker(
           markerId: const MarkerId('destino_seleccionado'),
           position: widget.selectedOrderLocation!,
-          infoWindow: const InfoWindow(title: 'Destino seleccionado'),
+          infoWindow: const InfoWindow(title: 'Destino'),
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueOrange,
+          ),
+        ),
+      );
+    }
+
+    if (puntoEncuentro != null) {
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('punto_encuentro'),
+          position: puntoEncuentro!,
+          infoWindow: const InfoWindow(title: 'Punto de Encuentro'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
           ),
         ),
       );
@@ -103,7 +119,7 @@ class _MapWidgetState extends State<MapWidget> {
       _lastCenteredOrder = destino;
 
       if (widget.ubicacionInicial != null) {
-        _dibujarRuta(origen, destino);
+        await _dibujarRuta(origen, destino);
       }
     }
   }
@@ -139,13 +155,16 @@ class _MapWidgetState extends State<MapWidget> {
         final coords = data['features'][0]['geometry']['coordinates'] as List;
         final puntos = coords.map<LatLng>((c) => LatLng(c[1], c[0])).toList();
 
+        // Establecer último punto como punto de encuentro
+        puntoEncuentro = puntos.last;
+        _agregarMarcadores();
+
         setState(() {
           _polylines.clear();
           _polylines.add(
             Polyline(
               polylineId: PolylineId(
-                'ruta_${DateTime.now().millisecondsSinceEpoch}',
-              ),
+                  'ruta_${DateTime.now().millisecondsSinceEpoch}'),
               color: Colors.blue,
               width: 5,
               points: puntos,
@@ -153,7 +172,16 @@ class _MapWidgetState extends State<MapWidget> {
           );
         });
       } else {
-        print('Error ORS: ${response.statusCode}');
+        print('No se encontró ruta directa, se intenta punto cercano...');
+
+        // Estimar punto accesible cercano manualmente
+        final LatLng puntoCercano = LatLng(
+          destino.latitude - 0.0015,
+          destino.longitude - 0.0015,
+        );
+
+        // Llamar de nuevo usando el punto cercano
+        await _dibujarRuta(inicio, puntoCercano);
       }
     } catch (e) {
       print('Error al obtener ruta ORS: $e');
@@ -162,7 +190,6 @@ class _MapWidgetState extends State<MapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Esperamos a que se obtenga la ubicación real
     if (widget.ubicacionInicial == null) {
       return const Center(
         child: CircularProgressIndicator(
@@ -189,10 +216,9 @@ class _MapWidgetState extends State<MapWidget> {
           markers: _markers,
           polylines: _polylines,
           padding: EdgeInsets.only(
-            bottom:
-                widget.ordersExpanded
-                    ? MediaQuery.of(context).size.height * 0.5 + 80
-                    : 30,
+            bottom: widget.ordersExpanded
+                ? MediaQuery.of(context).size.height * 0.5 + 80
+                : 30,
           ),
         ),
         Positioned(
