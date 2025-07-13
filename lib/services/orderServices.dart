@@ -27,10 +27,84 @@ class OrderServices {
   }
 
   // ✅ Obtener orden por ID
-  Future<Map<String, dynamic>> getOrderById(String id, {required String token}) async {
+  Future<Map<String, dynamic>> getOrderById(
+    String id, {
+    required String token,
+  }) async {
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error al obtener orden: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<List<dynamic>> getOrderByUser(
+    String userId, {
+    required String token,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/user/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error al obtener orden: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<List<dynamic>> getOrderByUserState(
+    String userId,
+    String state, {
+    required String token,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/user/$userId/state/$state'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error al obtener orden: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<List<dynamic>> getOrderAllByUserState(
+    String userId,
+    String state, {
+    required String token,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/userAll/$userId/state/$state'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -60,10 +134,7 @@ class OrderServices {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          'order': order,
-          'location': location,
-        }),
+        body: jsonEncode({'order': order, 'location': location}),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -103,16 +174,11 @@ class OrderServices {
   }
 
   // ✅ Eliminar orden
-  Future<void> deleteOrder({
-    required String id,
-    required String token,
-  }) async {
+  Future<void> deleteOrder({required String id, required String token}) async {
     try {
       final response = await http.delete(
         Uri.parse('$_baseUrl/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode != 200) {

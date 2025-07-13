@@ -59,9 +59,9 @@ class _OrderListState extends State<OrderList> {
       return _ordenes;
     } else if (userRole == 'REPARTIDOR' && userId != null) {
       return _ordenes.where((order) {
-        final deliveryOrder = order['deliveryOrder'];
+        final deliveryOrders = order['deliveryOrders'];
         final assignedUserId =
-            deliveryOrder?['deliveryVehicle']?['user']?['id'];
+            deliveryOrders?.firstWhere((e) => e['id'] == userId)['id'];
         return assignedUserId == userId;
       }).toList();
     }
