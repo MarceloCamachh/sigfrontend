@@ -9,7 +9,9 @@ import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/pages/Delivery/orderlist.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Map<String, dynamic>? pedidoInicial;
+
+  const HomePage({super.key, this.pedidoInicial});
 
   @override
   HomePageState createState() => HomePageState();
@@ -24,6 +26,20 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _checkPermissionAndGetLocation();
+
+    // Mostrar pedido si viene desde DeliveryManagement
+    if (widget.pedidoInicial != null) {
+      final location = widget.pedidoInicial!["location"];
+      if (location != null &&
+          location["latitude"] != null &&
+          location["longitude"] != null) {
+        _selectedOrderLocation = LatLng(
+          location["latitude"],
+          location["longitude"],
+        );
+        _ordersExpanded = false; // Oculta el OrderList
+      }
+    }
   }
 
   Future<void> _checkPermissionAndGetLocation() async {
@@ -50,8 +66,10 @@ class HomePageState extends State<HomePage> {
         location["latitude"] != null &&
         location["longitude"] != null) {
       setState(() {
-        _selectedOrderLocation =
-            LatLng(location["latitude"], location["longitude"]);
+        _selectedOrderLocation = LatLng(
+          location["latitude"],
+          location["longitude"],
+        );
       });
     }
   }
@@ -64,35 +82,36 @@ class HomePageState extends State<HomePage> {
       drawer: AppDrawer(),
       body: SafeArea(
         child: Builder(
-          builder: (context) => Stack(
-            children: [
-              MapWidget(
-                ubicacionInicial: _ubicacionInicial,
-                ordersExpanded: _ordersExpanded,
-                selectedOrderLocation: _selectedOrderLocation,
+          builder:
+              (context) => Stack(
+                children: [
+                  MapWidget(
+                    ubicacionInicial: _ubicacionInicial,
+                    ordersExpanded: _ordersExpanded,
+                    selectedOrderLocation: _selectedOrderLocation,
+                  ),
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: FloatingActionButton(
+                      heroTag: 'menu_btn',
+                      mini: true,
+                      backgroundColor: Colors.white,
+                      elevation: 4,
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      child: const Icon(Icons.menu, color: Colors.black),
+                    ),
+                  ),
+                  if (userRole == 'ADMINISTRADOR' || userRole == 'REPARTIDOR')
+                    OrderList(
+                      ordersExpanded: _ordersExpanded,
+                      toggleExpanded: () {
+                        setState(() => _ordersExpanded = !_ordersExpanded);
+                      },
+                      onVerEnMapa: _verUbicacionPedido,
+                    ),
+                ],
               ),
-              Positioned(
-                top: 16,
-                left: 16,
-                child: FloatingActionButton(
-                  heroTag: 'menu_btn',
-                  mini: true,
-                  backgroundColor: Colors.white,
-                  elevation: 4,
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                  child: const Icon(Icons.menu, color: Colors.black),
-                ),
-              ),
-              if (userRole == 'ADMINISTRADOR' || userRole == 'REPARTIDOR')
-                OrderList(
-                  ordersExpanded: _ordersExpanded,
-                  toggleExpanded: () {
-                    setState(() => _ordersExpanded = !_ordersExpanded);
-                  },
-                  onVerEnMapa: _verUbicacionPedido,
-                ),
-            ],
-          ),
         ),
       ),
     );

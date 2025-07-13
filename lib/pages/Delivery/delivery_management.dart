@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sigfrontend/components/CustomAppBar.dart';
 import 'package:sigfrontend/components/CustomDeliveryDropdown.dart';
 import 'package:sigfrontend/components/OrderCard.dart';
+import 'package:sigfrontend/pages/home.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/services/orderServices.dart';
 import 'package:sigfrontend/services/deliveryvehiclesServices.dart';
@@ -129,7 +130,15 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
                     children: [
                       OrderCard(
                         order: order,
-                        onVerEnMapa: (_) {}, // función vacía
+                        onVerEnMapa: (orden) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => HomePage(pedidoInicial: orden),
+                            ),
+                          );
+                        },
+                        // función vacía
                       ),
 
                       const SizedBox(height: 8),
