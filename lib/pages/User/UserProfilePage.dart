@@ -26,7 +26,7 @@ class UserProfilePage extends StatelessWidget {
           ),
         ),
         iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: const Color(0xFFf40008),
+        backgroundColor: Constantes.colorPurple,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -34,8 +34,8 @@ class UserProfilePage extends StatelessWidget {
             Container(
               height: 160,
               width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Color(0xFFf40008),
+              decoration: BoxDecoration(
+                color: Constantes.colorPurple,
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(30),
                 ),
@@ -82,7 +82,7 @@ class UserProfilePage extends StatelessWidget {
       child: ListTile(
         leading: ContainerIcon(
           icon: icon,
-          iconColor: Constantes.colorSecondary,
+          iconColor: Constantes.colorPurpleLight,
           containerColor: const Color.fromARGB(18, 0, 0, 0),
         ),
         title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),

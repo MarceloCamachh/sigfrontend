@@ -8,6 +8,7 @@ import 'package:sigfrontend/pages/splash_screen.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/pages/User/UserManagementPage .dart';
 import 'package:sigfrontend/pages/User/UserProfilePage.dart';
+import 'package:sigfrontend/utils/constants.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -29,12 +30,12 @@ class AppDrawer extends StatelessWidget {
     final saludo = obtenerSaludo();
 
     return Drawer(
-      child: SafeArea(
-        child: Stack(
+      child: Scaffold(
+        body: Stack(
           children: [
             ClipPath(
               clipper: WaveClipper(),
-              child: Container(height: 140, color: Color(0xFFf40008)),
+              child: Container(height: 160, color: Constantes.colorPurple),
             ),
             Padding(
               padding: const EdgeInsets.all(24.0),
@@ -157,9 +158,9 @@ class AppDrawer extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      leading: const Icon(
+                      leading: Icon(
                         Icons.logout_outlined,
-                        color: Color(0xFFf28386),
+                        color: Constantes.colorPurpleLight,
                       ),
                       onTap: () {
                         userProvider.clearUser();
@@ -190,7 +191,7 @@ class AppDrawer extends StatelessWidget {
           text,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
         ),
-        leading: Icon(icon, color: Color(0xFFf28386)),
+        leading: Icon(icon, color: Constantes.colorPurpleLight),
         onTap: onTap,
       ),
     );
