@@ -59,7 +59,6 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
                       );
                     })
                     .toList()
-                    .toList()
                 as List<DeliveryPerson>;
         _loading = false;
       });
@@ -74,8 +73,27 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
 
   Future<void> _assignOrderToVehicle(String orderId) async {
     final token = Provider.of<UserProvider>(context, listen: false).accessToken;
-
     final selectedVehicleId = _selectedVehiclePerOrder[orderId];
+
+    final order = _orders.firstWhere(
+      (o) => o['id'] == orderId,
+      orElse: () => null,
+    );
+    final isAssigned =
+        order != null &&
+        (order['deliveryOrders'] ?? []).isNotEmpty &&
+        (order['deliveryOrders'] as List).any(
+          (d) => d['delivery_state'] == 'assigned',
+        );
+
+    if (isAssigned) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Este pedido ya está asignado a un repartidor."),
+        ),
+      );
+      return;
+    }
 
     if (selectedVehicleId == null || selectedVehicleId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,12 +113,29 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
         const SnackBar(content: Text("Orden asignada correctamente.")),
       );
 
-      await _fetchInitialData(); // refrescar lista
+      await _fetchInitialData();
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error al asignar: $e")));
     }
+  }
+
+  String? _getAssignedDeliveryPersonName(Map<String, dynamic> order) {
+    print(order);
+    final deliveryOrders = order['deliveryOrders'] ?? [];
+    if (deliveryOrders.isNotEmpty) {
+      final deliveryOrder = deliveryOrders[0];
+      final vehicleId = deliveryOrder['deliveryVehicle']?['id'];
+      if (vehicleId != null) {
+        final deliveryPerson = _repartidores.firstWhere(
+          (r) => r.id == vehicleId,
+          orElse: () => DeliveryPerson(id: '', name: 'Desconocido'),
+        );
+        return deliveryPerson.name;
+      }
+    }
+    return null;
   }
 
   @override
@@ -124,6 +159,13 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
                 itemBuilder: (context, index) {
                   final order = _orders[index];
                   final orderId = order['id'];
+                  final isAssigned =
+                      (order['deliveryOrders'] ?? []).isNotEmpty &&
+                      (order['deliveryOrders'] as List).any(
+                        (d) => d['delivery_state'] == 'assigned',
+                      );
+                  final assignedDeliveryPersonName =
+                      _getAssignedDeliveryPersonName(order);
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,40 +180,50 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
                             ),
                           );
                         },
-                        // función vacía
                       ),
-
                       const SizedBox(height: 8),
-
-                      CustomDeliveryDropdown(
-                        selectedValue: _selectedVehiclePerOrder[orderId],
-                        repartidores: _repartidores,
-                        onChanged: (value) {
-                          setState(() {
-                            if (value == null || value.isEmpty) {
-                              _selectedVehiclePerOrder.remove(orderId);
-                            } else {
-                              print(
-                                "Selected vehicle: $value for order: $orderId",
-                              );
-                              _selectedVehiclePerOrder[orderId] = value;
-                            }
-                          });
-                        },
-                      ),
-
+                      isAssigned
+                          ? Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
+                            child: Text(
+                              'Asignado a: ${assignedDeliveryPersonName ?? "Repartidor desconocido"}',
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          )
+                          : CustomDeliveryDropdown(
+                            selectedValue: _selectedVehiclePerOrder[orderId],
+                            repartidores: _repartidores,
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == null || value.isEmpty) {
+                                  _selectedVehiclePerOrder.remove(orderId);
+                                } else {
+                                  print(
+                                    "Selected vehicle: $value for order: $orderId",
+                                  );
+                                  _selectedVehiclePerOrder[orderId] = value;
+                                }
+                              });
+                            },
+                          ),
                       const SizedBox(height: 6),
-
-                      ElevatedButton.icon(
-                        onPressed: () => _assignOrderToVehicle(orderId),
-                        icon: const Icon(Icons.send),
-                        label: const Text("Asignar Repartidor"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-
+                      isAssigned
+                          ? const SizedBox.shrink()
+                          : ElevatedButton.icon(
+                            onPressed: () => _assignOrderToVehicle(orderId),
+                            icon: const Icon(Icons.send),
+                            label: const Text("Asignar Repartidor"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.indigo,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
                       const Divider(height: 30),
                     ],
                   );
