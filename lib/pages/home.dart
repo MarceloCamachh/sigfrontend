@@ -175,6 +175,9 @@ class HomePageState extends State<HomePage> {
     final ubicacion = _pedidoActual!['location'];
     final volume = _pedidoActual!['volume'];
     final totalPayable = _pedidoActual!['total_payable'];
+    final deliveryOrders = _pedidoActual!['deliveryOrders'] ?? [];
+    final idDeliveryOrder =
+        deliveryOrders.isNotEmpty ? deliveryOrders.first['id'] : null;
 
     final Map<String, dynamic> updatedData = {
       "location": {
@@ -193,6 +196,12 @@ class HomePageState extends State<HomePage> {
       await OrderServices().updateOrder(
         id: idPedido,
         data: updatedData,
+        token: token,
+      );
+
+      await DeliveryOrderService().updateDeliveryOrderState(
+        id: idDeliveryOrder,
+        deliveryState: 'delivered',
         token: token,
       );
 
