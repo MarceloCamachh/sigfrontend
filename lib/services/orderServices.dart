@@ -113,6 +113,8 @@ class OrderServices {
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else if (response.statusCode == 404) {
+        return [];
       } else {
         throw Exception('Error al obtener orden: ${response.body}');
       }

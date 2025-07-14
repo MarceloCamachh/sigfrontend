@@ -41,25 +41,29 @@ class _DeliveryManagementState extends State<DeliveryManagement> {
         token,
       );
 
+      final operationalVehicles = rawRepartidores.where(
+        (v) =>
+            v['state'] == 'operational' &&
+            v['user'] != null &&
+            v['user']['id'] != null &&
+            v['user']['name'] != null,
+      );
+
+      final Map<String, DeliveryPerson> uniqueRepartidores = {};
+
+      for (var veh in operationalVehicles) {
+        final userId = veh['user']['id'];
+        if (!uniqueRepartidores.containsKey(userId)) {
+          uniqueRepartidores[userId] = DeliveryPerson(
+            id: veh['id'],
+            name: veh['user']['name'],
+          );
+        }
+      }
+
       setState(() {
         _orders = orders;
-        _repartidores =
-            // ignore: unnecessary_cast
-            rawRepartidores
-                    .where(
-                      (r) =>
-                          r['user'] != null &&
-                          r['id'] != null &&
-                          r['user']['name'] != null,
-                    )
-                    .map<DeliveryPerson>((repartidor) {
-                      return DeliveryPerson(
-                        id: repartidor['id'] as String,
-                        name: repartidor['user']['name'] as String,
-                      );
-                    })
-                    .toList()
-                as List<DeliveryPerson>;
+        _repartidores = uniqueRepartidores.values.toList();
         _loading = false;
       });
     } catch (e) {
