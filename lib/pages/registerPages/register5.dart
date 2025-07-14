@@ -81,7 +81,7 @@ class _RegistroPasoFinalPageState extends State<RegistroPasoFinalPage> {
         print('Preparando registro de vehículo...'); // Debug 8
         await DeliveryVehicleService().registerVehicle(
           licensePlate: widget.data.licensePlate!,
-          typeVehicle: widget.data.transport!.toString(),
+          typeVehicle: widget.data.transport!.name,
           capacity: widget.data.capacity!,
           userId: userId,
           token: token,
