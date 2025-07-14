@@ -39,10 +39,14 @@ class _OrderListState extends State<OrderList> {
         print('Token no disponible');
         return;
       }
+
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      var orders = [];
+      List<dynamic> orders = [];
+
       if (userProvider.role == 'ADMINISTRADOR') {
-        orders = await OrderServices().getAllOrders(token: token);
+        final allOrders = await OrderServices().getAllOrders(token: token);
+        orders =
+            allOrders.where((order) => order['state'] != 'delivered').toList();
       } else if (userProvider.role == 'REPARTIDOR') {
         orders = await OrderServices().getOrderAllByUserState(
           userProvider.id!,
@@ -50,7 +54,7 @@ class _OrderListState extends State<OrderList> {
           token: token,
         );
       }
-      if (orders.isNotEmpty) {}
+
       setState(() {
         _ordenes = orders;
         _cargandoOrdenes = false;

@@ -156,6 +156,9 @@ class OrderServices {
     required String token,
   }) async {
     try {
+      print(
+        "data: ${JsonCodec().encode(data)}",
+      ); // Debugging line to check data
       final response = await http.patch(
         Uri.parse('$_baseUrl/$id'),
         headers: {

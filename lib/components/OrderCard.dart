@@ -7,6 +7,9 @@ class OrderCard extends StatelessWidget {
   const OrderCard({super.key, required this.order, required this.onVerEnMapa});
 
   Color _getStateColor(String state, bool isAssigned) {
+    if (state.toUpperCase() == 'DELIVERED') {
+      return Colors.green;
+    }
     if (isAssigned) {
       return Colors.orange;
     }
@@ -15,14 +18,15 @@ class OrderCard extends StatelessWidget {
         return Colors.black;
       case 'IN_TRANSIT':
         return Colors.blue;
-      case 'DELIVERED':
-        return Colors.green;
       default:
         return Colors.white;
     }
   }
 
   String _getStateText(String state, bool isAssigned) {
+    if (state.toUpperCase() == 'DELIVERED') {
+      return 'Entregado';
+    }
     if (isAssigned) {
       return 'Asignado';
     }
@@ -31,8 +35,6 @@ class OrderCard extends StatelessWidget {
         return 'Pendiente';
       case 'IN_TRANSIT':
         return 'En tránsito';
-      case 'DELIVERED':
-        return 'Entregado';
       default:
         return state;
     }
@@ -40,13 +42,14 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final id = order["id"];
-    final state = order["state"] ?? "PENDING";
-    final volume = order["volume"] ?? 0;
-    final totalPayable = order["total_payable"] ?? 0;
+    final id = order["id"] ?? 'N/A';
+    final state = order["state"]?.toUpperCase() ?? "PENDING";
+    final volume = order["volume"]?.toDouble() ?? 0.0;
+    final totalPayable = order["total_payable"]?.toDouble() ?? 0.0;
     final location = order["location"];
     final deliveryOrders = order["deliveryOrders"] ?? [];
     final isAssigned =
+        state != 'DELIVERED' &&
         deliveryOrders.isNotEmpty &&
         deliveryOrders.any((d) => d["delivery_state"] == "assigned");
 
@@ -56,7 +59,12 @@ class OrderCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: isAssigned ? Colors.orange.shade700 : Colors.red.shade700,
+        color:
+            state == 'DELIVERED'
+                ? Colors.green.shade700
+                : isAssigned
+                ? Colors.orange.shade700
+                : Colors.red.shade700,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3)),
@@ -69,7 +77,13 @@ class OrderCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.local_shipping, size: 20, color: Colors.white),
+                Icon(
+                  state == 'DELIVERED'
+                      ? Icons.check_circle
+                      : Icons.local_shipping,
+                  size: 20,
+                  color: Colors.white,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -140,6 +154,18 @@ class OrderCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   'Asignado a repartidor',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            if (state == 'DELIVERED')
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Entregado exitosamente',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 12,

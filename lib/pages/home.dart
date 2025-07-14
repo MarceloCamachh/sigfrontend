@@ -8,6 +8,7 @@ import 'package:sigfrontend/components/Sidebar.dart';
 import 'package:sigfrontend/pages/map_widget.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/pages/Delivery/orderlist.dart';
+import 'package:sigfrontend/services/orderServices.dart';
 import 'package:sigfrontend/services/payment.services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
@@ -59,23 +60,27 @@ class HomePageState extends State<HomePage> {
       final clientSecret = await _paymentServices.createPaymentIntent(
         monto * 100,
         'bob',
-      ); // *100 porque Stripe usa centavos
+      );
 
       await _paymentServices.presentPaymentSheet(clientSecret);
 
+      if (!mounted) return;
       showDialog(
-        context: context,
+        context: this.context,
         builder:
             (_) => const AlertDialog(content: Text("Pago realizado con éxito")),
       );
+
+      print('Pago realizado con éxito: $monto Bs');
 
       _marcarPedidoComoCompletado();
     } catch (e) {
       print('Error al procesar el pago: $e');
       if (e is StripeException) {
         if (e.error.code == FailureCode.Canceled) {
+          if (!mounted) return;
           showDialog(
-            context: context,
+            context: this.context,
             builder:
                 (_) => const AlertDialog(
                   content: Text("El pago fue cancelado por el usuario."),
@@ -83,19 +88,22 @@ class HomePageState extends State<HomePage> {
           );
         } else {
           showDialog(
-            context: context,
+            context: this.context,
             builder:
                 (_) => AlertDialog(
-                  content: Text(
-                    "Error en el pago: ${e.error.localizedMessage}",
-                  ),
+                  content: Text("Error en el pago: ${e.error.message}"),
                 ),
           );
         }
       } else {
+        print('Error desconocido: $e');
+        if (!mounted) return;
         showDialog(
-          context: context,
-          builder: (_) => AlertDialog(content: Text("Error en el pago: $e")),
+          context: this.context,
+          builder:
+              (_) => const AlertDialog(
+                content: Text("Error al procesar el pago. Inténtalo de nuevo."),
+              ),
         );
       }
     }
@@ -136,6 +144,7 @@ class HomePageState extends State<HomePage> {
     }
   }
 
+  /*
   void _verUbicacionPedido(Map<String, dynamic> order) {
     final location = order["location"];
     if (location != null &&
@@ -150,7 +159,7 @@ class HomePageState extends State<HomePage> {
         _panelMostrado = false; // Reinicia para permitir que se muestre
       });
     }
-  }
+  }*/
 
   void _mostrarPanelEntrega(Map<String, dynamic> pedido) {
     showModalBottomSheet(
@@ -189,21 +198,71 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  void _marcarPedidoComoCompletado() {
-    setState(() {
-      _ordenesAsignadas.remove(_pedidoActual);
-      if (_ordenesAsignadas.isNotEmpty) {
-        _pedidoActual = _ordenesAsignadas.first;
-        _selectedOrderLocation = LatLng(
-          _pedidoActual!['location']['latitude'],
-          _pedidoActual!['location']['longitude'],
-        );
-        _panelMostrado = false;
-      } else {
-        _pedidoActual = null;
-        _selectedOrderLocation = null;
-      }
-    });
+  void _marcarPedidoComoCompletado() async {
+    if (_pedidoActual == null) return;
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final token = userProvider.accessToken ?? '';
+
+    // Datos actuales
+    final ubicacion = _pedidoActual!['location'];
+    final volume = _pedidoActual!['volume'];
+    final totalPayable = _pedidoActual!['total_payable'];
+
+    final Map<String, dynamic> updatedData = {
+      "location": {
+        "latitude": ubicacion['latitude'],
+        "longitude": ubicacion['longitude'],
+        "capture_time": ubicacion['capture_time'],
+      },
+      "volume": volume,
+      "state": "delivered",
+      "total_payable": totalPayable,
+    };
+
+    final String idPedido = _pedidoActual!['id'];
+
+    try {
+      await OrderServices().updateOrder(
+        id: idPedido,
+        data: updatedData,
+        token: token,
+      );
+
+      print('Pedido marcado como entregado exitosamente.');
+
+      setState(() {
+        _ordenesAsignadas.remove(_pedidoActual);
+        if (_ordenesAsignadas.isNotEmpty) {
+          _pedidoActual = _ordenesAsignadas.first;
+          _selectedOrderLocation = LatLng(
+            _pedidoActual!['location']['latitude'],
+            _pedidoActual!['location']['longitude'],
+          );
+          _panelMostrado = false;
+        } else {
+          _pedidoActual = null;
+          _selectedOrderLocation = null;
+        }
+      });
+    } catch (e) {
+      print('Error al actualizar el estado del pedido: $e');
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder:
+            (_) => AlertDialog(
+              title: const Text('Error'),
+              content: Text('No se pudo actualizar el estado del pedido:\n$e'),
+              actions: [
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+      );
+    }
   }
 
   @override

@@ -36,7 +36,7 @@ class _PruebaPago extends State<PruebaPago> {
       final response = await http.post(
         Uri.parse('https://api.stripe.com/v1/checkout/sessions'),
         headers: {
-          'Authorization': 'Bearer ${Constantes.secretKey}',
+          'Authorization': 'Bearer ${Constantes.publicKey}',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {
