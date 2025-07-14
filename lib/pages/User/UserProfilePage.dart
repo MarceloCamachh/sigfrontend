@@ -190,18 +190,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               },
                               Icons.check_circle_outline,
                             ),
-                            _buildDropdownField(
-                              'Rol',
-                              _selectedRoleId,
-                              _roleMap.keys.toList(),
-                              (value) {
-                                setState(() {
-                                  _selectedRoleId = value;
-                                });
-                              },
-                              Icons.badge,
-                              displayValue: (id) => _roleMap[id] ?? id,
-                            ),
+                            if (role == 'ADMINISTRADOR')
+                              _buildDropdownField(
+                                'Rol',
+                                _selectedRoleId,
+                                _roleMap.keys.toList(),
+                                (value) {
+                                  setState(() {
+                                    _selectedRoleId = value;
+                                  });
+                                },
+                                Icons.badge,
+                                displayValue: (id) => _roleMap[id] ?? id,
+                              ),
                             const SizedBox(height: 40),
                           ],
                         ),
