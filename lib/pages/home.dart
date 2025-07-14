@@ -1,8 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:sigfrontend/components/DeliveredPanel.dart';
 import 'package:sigfrontend/components/OrderCard.dart';
 import 'package:sigfrontend/components/Sidebar.dart';
 import 'package:sigfrontend/pages/map_widget.dart';
@@ -25,8 +28,8 @@ class HomePageState extends State<HomePage> {
   LatLng? _ubicacionInicial;
   bool _ordersExpanded = true;
   LatLng? _selectedOrderLocation;
-  List<Map<String, dynamic>> _ordenesAsignadas = []; // Lista actual de pedidos
-  Map<String, dynamic>? _pedidoActual; // Pedido que está siendo entregado
+  List<Map<String, dynamic>> _ordenesAsignadas = [];
+  Map<String, dynamic>? _pedidoActual;
   bool _panelMostrado = false;
   final PaymentServices _paymentServices = PaymentServices();
 
@@ -35,7 +38,6 @@ class HomePageState extends State<HomePage> {
     super.initState();
     _checkPermissionAndGetLocation();
 
-    // Mostrar pedido si viene desde DeliveryManagement
     if (widget.pedidoInicial != null) {
       final location = widget.pedidoInicial!["location"];
       if (location != null &&
@@ -126,7 +128,6 @@ class HomePageState extends State<HomePage> {
       _ubicacionInicial = LatLng(position.latitude, position.longitude);
     });
 
-    // Verificar si hay pedido actual y no se ha mostrado panel aún
     if (_pedidoActual != null && !_panelMostrado) {
       final destino = _pedidoActual!['location'];
       final distancia = Geolocator.distanceBetween(
@@ -144,23 +145,6 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  /*
-  void _verUbicacionPedido(Map<String, dynamic> order) {
-    final location = order["location"];
-    if (location != null &&
-        location["latitude"] != null &&
-        location["longitude"] != null) {
-      setState(() {
-        _selectedOrderLocation = LatLng(
-          location["latitude"],
-          location["longitude"],
-        );
-        _pedidoActual = order;
-        _panelMostrado = false; // Reinicia para permitir que se muestre
-      });
-    }
-  }*/
-
   void _mostrarPanelEntrega(Map<String, dynamic> pedido) {
     showModalBottomSheet(
       context: context,
@@ -168,43 +152,25 @@ class HomePageState extends State<HomePage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        final monto = pedido['total_payable']?.toStringAsFixed(2) ?? '0.00';
-        final id = pedido['id'] ?? 'N/A';
-
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Pedido #$id'),
-              Text('Monto: Bs. $monto'),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await _procesarPagoYCompletar(context, pedido);
-                },
-                icon: const Icon(Icons.payment),
-                label: const Text('Completar y Pagar'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
+      builder:
+          (context) => DeliveryPanel(
+            pedido: pedido,
+            onClose: () => Navigator.pop(context),
+            onComplete: () async {
+              Navigator.pop(context);
+              await _procesarPagoYCompletar(context, pedido);
+            },
+            onCancel: _cancelarPedido,
           ),
-        );
-      },
     );
   }
 
-  void _marcarPedidoComoCompletado() async {
+  Future<void> _marcarPedidoComoCompletado() async {
     if (_pedidoActual == null) return;
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final token = userProvider.accessToken ?? '';
 
-    // Datos actuales
     final ubicacion = _pedidoActual!['location'];
     final volume = _pedidoActual!['volume'];
     final totalPayable = _pedidoActual!['total_payable'];
@@ -265,6 +231,77 @@ class HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _cancelarPedido() async {
+    if (_pedidoActual == null) return;
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final token = userProvider.accessToken ?? '';
+
+    final ubicacion = _pedidoActual!['location'];
+    final volume = _pedidoActual!['volume'];
+    final totalPayable = _pedidoActual!['total_payable'];
+
+    final Map<String, dynamic> updatedData = {
+      "location": {
+        "latitude": ubicacion['latitude'],
+        "longitude": ubicacion['longitude'],
+        "capture_time": ubicacion['capture_time'],
+      },
+      "volume": volume,
+      "state": "canceled",
+      "total_payable": totalPayable,
+    };
+
+    final String idPedido = _pedidoActual!['id'];
+
+    try {
+      await OrderServices().updateOrder(
+        id: idPedido,
+        data: updatedData,
+        token: token,
+      );
+
+      print('Pedido cancelado exitosamente.');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Entrega cancelada con éxito')),
+      );
+
+      setState(() {
+        _ordenesAsignadas.remove(_pedidoActual);
+        if (_ordenesAsignadas.isNotEmpty) {
+          _pedidoActual = _ordenesAsignadas.first;
+          _selectedOrderLocation = LatLng(
+            _pedidoActual!['location']['latitude'],
+            _pedidoActual!['location']['longitude'],
+          );
+          _panelMostrado = false;
+        } else {
+          _pedidoActual = null;
+          _selectedOrderLocation = null;
+        }
+      });
+    } catch (e) {
+      print('Error al cancelar el pedido: $e');
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder:
+            (_) => AlertDialog(
+              title: const Text('Error'),
+              content: Text('No se pudo cancelar el pedido:\n$e'),
+              actions: [
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userRole = Provider.of<UserProvider>(context).role;
@@ -311,10 +348,10 @@ class HomePageState extends State<HomePage> {
                             );
                           }
                         },
-                        child: const Icon(Icons.bolt),
+                        backgroundColor: Colors.blue,
+                        child: const Icon(Icons.info, color: Colors.white),
                       ),
                     ),
-
                   _pedidoActual != null
                       ? Positioned(
                         bottom: 0,
