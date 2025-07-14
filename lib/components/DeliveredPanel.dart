@@ -121,7 +121,10 @@ class DeliveryPanel extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: onCancel,
+                  onPressed: () {
+                    onCancel();
+                    onClose();
+                  },
                   icon: const Icon(Icons.cancel, size: 20),
                   label: const Text('Cancelar Entrega'),
                   style: OutlinedButton.styleFrom(
