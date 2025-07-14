@@ -133,6 +133,7 @@ class LoginPageState extends State<LoginPage> {
 
       if (responseData != null && mounted) {
         await userProvider.setUserData(responseData);
+        await userProvider.fetchUserData(responseData['user']['id']);
         Navigator.pushReplacement(
           context,
           FadeThroughPageRoute(page: const HomePage()),
