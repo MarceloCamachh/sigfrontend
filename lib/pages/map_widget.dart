@@ -7,12 +7,16 @@ class MapWidget extends StatefulWidget {
   final LatLng? ubicacionInicial;
   final bool ordersExpanded;
   final LatLng? selectedOrderLocation;
+  final List<Map<String, dynamic>>? ordenes;
+  final Map<String, dynamic>? ordenActual;
 
   const MapWidget({
     super.key,
     required this.ubicacionInicial,
     required this.ordersExpanded,
     this.selectedOrderLocation,
+    this.ordenes,
+    this.ordenActual,
   });
 
   @override
@@ -24,11 +28,9 @@ class _MapWidgetState extends State<MapWidget> {
   final Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
   LatLng? _lastCenteredOrder;
-  final String _apiKey =
-      'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImNmNDU1MDYwZjcyZDRiYzI5NTc4ZWYxN2YyNTE2YTc3IiwiaCI6Im11cm11cjY0In0=';
-
-  // Último punto accesible de la ruta
   LatLng? puntoEncuentro;
+
+  final String _apiKey = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImNmNDU1MDYwZjcyZDRiYzI5NTc4ZWYxN2YyNTE2YTc3IiwiaCI6Im11cm11cjY0In0=';
 
   @override
   void initState() {
@@ -43,83 +45,88 @@ class _MapWidgetState extends State<MapWidget> {
     _centrarEnPedidoSeleccionado();
   }
 
-  void _agregarMarcadores() {
-    _markers.clear();
+void _agregarMarcadores() {
+  _markers.clear();
 
-    if (widget.ubicacionInicial != null) {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('ubicacion_actual'),
-          position: widget.ubicacionInicial!,
-          infoWindow: const InfoWindow(title: 'Estás aquí'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
-          ),
-        ),
-      );
-    }
-
-    if (widget.selectedOrderLocation != null) {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('destino_seleccionado'),
-          position: widget.selectedOrderLocation!,
-          infoWindow: const InfoWindow(title: 'Destino'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange,
-          ),
-        ),
-      );
-    }
-
-    if (puntoEncuentro != null) {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('punto_encuentro'),
-          position: puntoEncuentro!,
-          infoWindow: const InfoWindow(title: 'Punto de Encuentro'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueGreen,
-          ),
-        ),
-      );
-    }
-
-    setState(() {});
+  // Agrega ubicación actual
+  if (widget.ubicacionInicial != null) {
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('ubicacion_actual'),
+        position: widget.ubicacionInicial!,
+        infoWindow: const InfoWindow(title: 'Estás aquí'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      ),
+    );
   }
 
-  void _centrarEnPedidoSeleccionado() async {
-    if (widget.selectedOrderLocation != null &&
-        widget.selectedOrderLocation != _lastCenteredOrder) {
-      final LatLng destino = widget.selectedOrderLocation!;
-      final LatLng origen = widget.ubicacionInicial ?? destino;
-
-      final southwest = LatLng(
-        (origen.latitude < destino.latitude)
-            ? origen.latitude
-            : destino.latitude,
-        (origen.longitude < destino.longitude)
-            ? origen.longitude
-            : destino.longitude,
+  // Prioridad 1: mostrar solo ordenActual si está definido
+  if (widget.ordenActual != null) {
+    final loc = widget.ordenActual!['location'];
+    if (loc != null && loc['latitude'] != null && loc['longitude'] != null) {
+      _markers.add(
+        Marker(
+          markerId: MarkerId(widget.ordenActual!['id'].toString()),
+          position: LatLng(loc['latitude'], loc['longitude']),
+          infoWindow: const InfoWindow(title: 'Pedido asignado'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        ),
       );
-      final northeast = LatLng(
-        (origen.latitude > destino.latitude)
-            ? origen.latitude
-            : destino.latitude,
-        (origen.longitude > destino.longitude)
-            ? origen.longitude
-            : destino.longitude,
-      );
-      final bounds = LatLngBounds(southwest: southwest, northeast: northeast);
+    }
+  }
+  // Prioridad 2: si no hay ordenActual, mostrar selectedOrderLocation
+  else if (widget.selectedOrderLocation != null) {
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('destino_seleccionado'),
+        position: widget.selectedOrderLocation!,
+        infoWindow: const InfoWindow(title: 'Destino'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+      ),
+    );
+  }
 
-      await _mapController?.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 80),
-      );
+  // Punto de encuentro si existe
+  if (puntoEncuentro != null) {
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('punto_encuentro'),
+        position: puntoEncuentro!,
+        infoWindow: const InfoWindow(title: 'Punto de Encuentro'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      ),
+    );
+  }
 
-      _lastCenteredOrder = destino;
+  setState(() {});
+}
+ void _centrarEnPedidoSeleccionado() async {
+    if (widget.ordenActual != null) {
+      final loc = widget.ordenActual!['location'];
+      if (loc != null &&
+          loc['latitude'] != null &&
+          loc['longitude'] != null &&
+          LatLng(loc['latitude'], loc['longitude']) != _lastCenteredOrder) {
+        final destino = LatLng(loc['latitude'], loc['longitude']);
+        final origen = widget.ubicacionInicial ?? destino;
 
-      if (widget.ubicacionInicial != null) {
-        await _dibujarRuta(origen, destino);
+        final southwest = LatLng(
+          (origen.latitude < destino.latitude) ? origen.latitude : destino.latitude,
+          (origen.longitude < destino.longitude) ? origen.longitude : destino.longitude,
+        );
+        final northeast = LatLng(
+          (origen.latitude > destino.latitude) ? origen.latitude : destino.latitude,
+          (origen.longitude > destino.longitude) ? origen.longitude : destino.longitude,
+        );
+
+        final bounds = LatLngBounds(southwest: southwest, northeast: northeast);
+
+        await _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
+        _lastCenteredOrder = destino;
+
+        if (widget.ubicacionInicial != null) {
+          await _dibujarRuta(origen, destino);
+        }
       }
     }
   }
@@ -134,9 +141,7 @@ class _MapWidgetState extends State<MapWidget> {
 
   Future<void> _dibujarRuta(LatLng inicio, LatLng destino) async {
     try {
-      final url = Uri.parse(
-        'https://api.openrouteservice.org/v2/directions/driving-car/geojson',
-      );
+      final url = Uri.parse('https://api.openrouteservice.org/v2/directions/driving-car/geojson');
       final body = jsonEncode({
         'coordinates': [
           [inicio.longitude, inicio.latitude],
@@ -155,7 +160,6 @@ class _MapWidgetState extends State<MapWidget> {
         final coords = data['features'][0]['geometry']['coordinates'] as List;
         final puntos = coords.map<LatLng>((c) => LatLng(c[1], c[0])).toList();
 
-        // Establecer último punto como punto de encuentro
         puntoEncuentro = puntos.last;
         _agregarMarcadores();
 
@@ -163,8 +167,7 @@ class _MapWidgetState extends State<MapWidget> {
           _polylines.clear();
           _polylines.add(
             Polyline(
-              polylineId: PolylineId(
-                  'ruta_${DateTime.now().millisecondsSinceEpoch}'),
+              polylineId: PolylineId('ruta_${DateTime.now().millisecondsSinceEpoch}'),
               color: Colors.blue,
               width: 5,
               points: puntos,
@@ -172,15 +175,7 @@ class _MapWidgetState extends State<MapWidget> {
           );
         });
       } else {
-        print('No se encontró ruta directa, se intenta punto cercano...');
-
-        // Estimar punto accesible cercano manualmente
-        final LatLng puntoCercano = LatLng(
-          destino.latitude - 0.0015,
-          destino.longitude - 0.0015,
-        );
-
-        // Llamar de nuevo usando el punto cercano
+        final LatLng puntoCercano = LatLng(destino.latitude - 0.0015, destino.longitude - 0.0015);
         await _dibujarRuta(inicio, puntoCercano);
       }
     } catch (e) {
@@ -191,12 +186,7 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   Widget build(BuildContext context) {
     if (widget.ubicacionInicial == null) {
-      return const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: Colors.blueAccent,
-        ),
-      );
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.blueAccent));
     }
 
     return Stack(
@@ -216,9 +206,7 @@ class _MapWidgetState extends State<MapWidget> {
           markers: _markers,
           polylines: _polylines,
           padding: EdgeInsets.only(
-            bottom: widget.ordersExpanded
-                ? MediaQuery.of(context).size.height * 0.5 + 80
-                : 30,
+            bottom: widget.ordersExpanded ? MediaQuery.of(context).size.height * 0.5 + 80 : 30,
           ),
         ),
         Positioned(
