@@ -103,16 +103,6 @@ class AppDrawer extends StatelessWidget {
                             ),
                           );
                         }, Icons.motorcycle_sharp),
-                        const Divider(indent: 0, endIndent: 0),
-                        _alingedText('Historial de Pagos', () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PruebaPago(),
-                            ),
-                          );
-                        }, Icons.history),
 
                         if (userProvider.role == 'ADMINISTRADOR') ...[
                           const Divider(indent: 0, endIndent: 0),
