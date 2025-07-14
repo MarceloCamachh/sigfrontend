@@ -11,6 +11,7 @@ import 'package:sigfrontend/components/Sidebar.dart';
 import 'package:sigfrontend/pages/map_widget.dart';
 import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/pages/Delivery/orderlist.dart';
+import 'package:sigfrontend/services/deliveryOrderService.dart';
 import 'package:sigfrontend/services/orderServices.dart';
 import 'package:sigfrontend/services/payment.services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -240,6 +241,9 @@ class HomePageState extends State<HomePage> {
     final ubicacion = _pedidoActual!['location'];
     final volume = _pedidoActual!['volume'];
     final totalPayable = _pedidoActual!['total_payable'];
+    final deliveryOrders = _pedidoActual!['deliveryOrders'] ?? [];
+    final idDeliveryOrder =
+        deliveryOrders.isNotEmpty ? deliveryOrders.first['id'] : null;
 
     final Map<String, dynamic> updatedData = {
       "location": {
@@ -248,7 +252,7 @@ class HomePageState extends State<HomePage> {
         "capture_time": ubicacion['capture_time'],
       },
       "volume": volume,
-      "state": "canceled",
+      "state": "pending",
       "total_payable": totalPayable,
     };
 
@@ -258,6 +262,11 @@ class HomePageState extends State<HomePage> {
       await OrderServices().updateOrder(
         id: idPedido,
         data: updatedData,
+        token: token,
+      );
+
+      await DeliveryOrderService().cancelDeliveryOrder(
+        id: idDeliveryOrder,
         token: token,
       );
 

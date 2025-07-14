@@ -47,9 +47,7 @@ class DeliveryOrderService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          'delivery_state': deliveryState,
-        }),
+        body: jsonEncode({'delivery_state': deliveryState}),
       );
 
       if (response.statusCode == 200) {
@@ -76,7 +74,9 @@ class DeliveryOrderService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error al obtener órdenes de entrega: ${response.body}');
+        throw Exception(
+          'Error al obtener órdenes de entrega: ${response.body}',
+        );
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
@@ -101,6 +101,27 @@ class DeliveryOrderService {
         return jsonDecode(response.body);
       } else {
         throw Exception('Error al obtener orden de entrega: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<void> cancelDeliveryOrder({
+    required String id,
+    required String token,
+  }) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Error al cancelar orden de entrega: ${response.body}');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
