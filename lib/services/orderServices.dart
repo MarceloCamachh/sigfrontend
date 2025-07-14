@@ -113,6 +113,8 @@ class OrderServices {
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else if (response.statusCode == 404) {
+        return [];
       } else {
         throw Exception('Error al obtener orden: ${response.body}');
       }
@@ -154,6 +156,9 @@ class OrderServices {
     required String token,
   }) async {
     try {
+      print(
+        "data: ${JsonCodec().encode(data)}",
+      ); // Debugging line to check data
       final response = await http.patch(
         Uri.parse('$_baseUrl/$id'),
         headers: {

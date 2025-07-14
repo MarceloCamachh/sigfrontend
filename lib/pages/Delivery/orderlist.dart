@@ -7,7 +7,8 @@ import 'package:sigfrontend/services/orderServices.dart';
 class OrderList extends StatefulWidget {
   final bool ordersExpanded;
   final VoidCallback toggleExpanded;
-  final Function(Map<String, dynamic>) onVerEnMapa;
+  final void Function(Map<String, dynamic>, List<Map<String, dynamic>>)
+  onVerEnMapa;
 
   const OrderList({
     super.key,
@@ -38,7 +39,22 @@ class _OrderListState extends State<OrderList> {
         print('Token no disponible');
         return;
       }
-      final orders = await OrderServices().getAllOrders(token: token);
+
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      List<dynamic> orders = [];
+
+      if (userProvider.role == 'ADMINISTRADOR') {
+        final allOrders = await OrderServices().getAllOrders(token: token);
+        orders =
+            allOrders.where((order) => order['state'] != 'delivered').toList();
+      } else if (userProvider.role == 'REPARTIDOR') {
+        orders = await OrderServices().getOrderAllByUserState(
+          userProvider.id!,
+          'pending',
+          token: token,
+        );
+      }
+
       setState(() {
         _ordenes = orders;
         _cargandoOrdenes = false;
@@ -54,32 +70,9 @@ class _OrderListState extends State<OrderList> {
     }
   }
 
-  List<dynamic> _getFilteredOrders(String userRole, String? userId) {
-  if (userRole == 'ADMINISTRADOR') {
-    return _ordenes;
-  } else if (userRole == 'REPARTIDOR' && userId != null) {
-    return _ordenes.where((order) {
-      final deliveryOrders = order['deliveryOrders'] as List<dynamic>?;
-      if (deliveryOrders == null) return false;
-
-      return deliveryOrders.any((e) =>
-        e['deliveryVehicle'] != null &&
-        e['deliveryVehicle']['user'] != null &&
-        e['deliveryVehicle']['user']['id'] == userId
-      );
-    }).toList();
-  }
-  return [];
-}
-
-
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final userRole = userProvider.role;
-    final userId = userProvider.id;
-
-    final filteredOrders = _getFilteredOrders(userRole!, userId);
+    final filteredOrders = _ordenes;
 
     final double carouselHeight = 200;
     final double titleBarHeight = 50;
@@ -165,10 +158,17 @@ class _OrderListState extends State<OrderList> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.8,
+                            width:
+                                MediaQuery.of(context).size.width *
+                                (filteredOrders.length == 1 ? 0.91 : 0.8),
                             child: OrderCard(
                               order: order,
-                              onVerEnMapa: widget.onVerEnMapa,
+                              onVerEnMapa: (_) {
+                                widget.onVerEnMapa(
+                                  order,
+                                  filteredOrders.cast<Map<String, dynamic>>(),
+                                );
+                              },
                             ),
                           ),
                         );
