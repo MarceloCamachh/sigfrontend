@@ -55,18 +55,23 @@ class _OrderListState extends State<OrderList> {
   }
 
   List<dynamic> _getFilteredOrders(String userRole, String? userId) {
-    if (userRole == 'ADMINISTRADOR') {
-      return _ordenes;
-    } else if (userRole == 'REPARTIDOR' && userId != null) {
-      return _ordenes.where((order) {
-        final deliveryOrders = order['deliveryOrders'];
-        final assignedUserId =
-            deliveryOrders?.firstWhere((e) => e['id'] == userId)['id'];
-        return assignedUserId == userId;
-      }).toList();
-    }
-    return [];
+  if (userRole == 'ADMINISTRADOR') {
+    return _ordenes;
+  } else if (userRole == 'REPARTIDOR' && userId != null) {
+    return _ordenes.where((order) {
+      final deliveryOrders = order['deliveryOrders'] as List<dynamic>?;
+      if (deliveryOrders == null) return false;
+
+      return deliveryOrders.any((e) =>
+        e['deliveryVehicle'] != null &&
+        e['deliveryVehicle']['user'] != null &&
+        e['deliveryVehicle']['user']['id'] == userId
+      );
+    }).toList();
   }
+  return [];
+}
+
 
   @override
   Widget build(BuildContext context) {
