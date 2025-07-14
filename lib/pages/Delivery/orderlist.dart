@@ -7,7 +7,8 @@ import 'package:sigfrontend/services/orderServices.dart';
 class OrderList extends StatefulWidget {
   final bool ordersExpanded;
   final VoidCallback toggleExpanded;
-  final Function(Map<String, dynamic>) onVerEnMapa;
+  final void Function(Map<String, dynamic>, List<Map<String, dynamic>>) onVerEnMapa;
+
 
   const OrderList({
     super.key,
@@ -54,23 +55,23 @@ class _OrderListState extends State<OrderList> {
     }
   }
 
-  List<dynamic> _getFilteredOrders(String userRole, String? userId) {
-  if (userRole == 'ADMINISTRADOR') {
-    return _ordenes;
-  } else if (userRole == 'REPARTIDOR' && userId != null) {
-    return _ordenes.where((order) {
-      final deliveryOrders = order['deliveryOrders'] as List<dynamic>?;
-      if (deliveryOrders == null) return false;
+ List<dynamic> _getFilteredOrders(String userRole, String? userId) {
+    if (userRole == 'ADMINISTRADOR') {
+      return _ordenes;
+    } else if (userRole == 'REPARTIDOR' && userId != null) {
+      return _ordenes.where((order) {
+        final deliveryOrders = order['deliveryOrders'] as List<dynamic>?;
+        if (deliveryOrders == null) return false;
 
-      return deliveryOrders.any((e) =>
-        e['deliveryVehicle'] != null &&
-        e['deliveryVehicle']['user'] != null &&
-        e['deliveryVehicle']['user']['id'] == userId
-      );
-    }).toList();
+        return deliveryOrders.any((e) =>
+          e['deliveryVehicle'] != null &&
+          e['deliveryVehicle']['user'] != null &&
+          e['deliveryVehicle']['user']['id'] == userId
+        );
+      }).toList();
+    }
+    return [];
   }
-  return [];
-}
 
 
   @override
@@ -168,7 +169,9 @@ class _OrderListState extends State<OrderList> {
                             width: MediaQuery.of(context).size.width * 0.8,
                             child: OrderCard(
                               order: order,
-                              onVerEnMapa: widget.onVerEnMapa,
+                             onVerEnMapa: (_) {
+                                widget.onVerEnMapa(order, filteredOrders.cast<Map<String, dynamic>>());
+                              },
                             ),
                           ),
                         );
