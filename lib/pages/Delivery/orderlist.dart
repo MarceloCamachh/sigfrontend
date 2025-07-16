@@ -10,11 +10,14 @@ class OrderList extends StatefulWidget {
   final void Function(Map<String, dynamic>, List<Map<String, dynamic>>)
   onVerEnMapa;
 
+  final void Function(List<dynamic>) onOptimizarRutaCompleta;
+
   const OrderList({
     super.key,
     required this.ordersExpanded,
     required this.toggleExpanded,
     required this.onVerEnMapa,
+    required this.onOptimizarRutaCompleta,
   });
 
   @override
@@ -104,6 +107,18 @@ class _OrderListState extends State<OrderList> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  if (widget.ordersExpanded && _ordenes.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.route_outlined,
+                        color: Colors.white,
+                      ),
+                      tooltip: 'Optimizar ruta de entrega',
+                      onPressed: () {
+                        // Llama al nuevo callback con la lista de órdenes
+                        widget.onOptimizarRutaCompleta(_ordenes);
+                      },
+                    ),
                   Icon(
                     widget.ordersExpanded
                         ? Icons.keyboard_arrow_down

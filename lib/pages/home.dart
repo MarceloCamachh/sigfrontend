@@ -5,6 +5,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:sigfrontend/components/BottonChange.dart';
 import 'package:sigfrontend/components/DeliveredPanel.dart';
 import 'package:sigfrontend/components/OrderCard.dart';
 import 'package:sigfrontend/components/Sidebar.dart';
@@ -13,8 +15,6 @@ import 'package:sigfrontend/providers/user_provider.dart';
 import 'package:sigfrontend/pages/Delivery/orderlist.dart';
 import 'package:sigfrontend/services/deliveryOrderService.dart';
 import 'package:sigfrontend/services/orderServices.dart';
-import 'package:sigfrontend/services/payment.services.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 
 class HomePage extends StatefulWidget {
   final Map<String, dynamic>? pedidoInicial;
@@ -32,7 +32,7 @@ class HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _ordenesAsignadas = [];
   Map<String, dynamic>? _pedidoActual;
   bool _panelMostrado = false;
-  final PaymentServices _paymentServices = PaymentServices();
+  List<Map<String, dynamic>>? _rutaOptimaPedidos;
 
   @override
   void initState() {
@@ -53,63 +53,92 @@ class HomePageState extends State<HomePage> {
     }
   }
 
+  // Nuevo método para mostrar el QR
+  Future<void> _mostrarQrParaPago(
+    BuildContext context,
+    Map<String, dynamic> pedido,
+  ) async {
+    final witdh = MediaQuery.of(context).size.width;
+    final monto = (pedido['total_payable'] as num?)?.toDouble() ?? 0.0;
+    final idPedido = pedido['id'] ?? 'N/A';
+    final String qrData =
+        'Monto: ${monto.toStringAsFixed(2)} Bs\nPedido ID: $idPedido';
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Código QR para Pago'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Escanea este código para pagar Bs. ${monto.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              QrImageView(
+                data: qrData,
+                version: QrVersions.auto,
+                size: 200.0,
+                gapless: true,
+                errorStateBuilder: (cxt, err) {
+                  return const Center(
+                    child: Text(
+                      '¡Algo salió mal al generar el QR!',
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Una vez que el pago se haya confirmado, por favor haz clic en "Confirmar Pago".',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            BottonChange(
+              colorBack: Colors.red,
+              colorFont: Colors.white,
+              textTile: 'Cancelar',
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              width: witdh * 0.3,
+              height: 40,
+              fontSize: 14,
+            ),
+            SizedBox(height: 10),
+            BottonChange(
+              colorBack: Colors.green,
+              colorFont: Colors.white,
+              textTile: 'Confirmar Pago',
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _marcarPedidoComoCompletado();
+              },
+              width: witdh * 0.5,
+              height: 40,
+              fontSize: 16,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _procesarPagoYCompletar(
     BuildContext context,
     Map<String, dynamic> pedido,
   ) async {
-    try {
-      final monto = (pedido['total_payable'] as num?)?.toInt() ?? 0;
-
-      final clientSecret = await _paymentServices.createPaymentIntent(
-        monto * 100,
-        'bob',
-      );
-
-      await _paymentServices.presentPaymentSheet(clientSecret);
-
-      if (!mounted) return;
-      showDialog(
-        context: this.context,
-        builder:
-            (_) => const AlertDialog(content: Text("Pago realizado con éxito")),
-      );
-
-      print('Pago realizado con éxito: $monto Bs');
-
-      _marcarPedidoComoCompletado();
-    } catch (e) {
-      print('Error al procesar el pago: $e');
-      if (e is StripeException) {
-        if (e.error.code == FailureCode.Canceled) {
-          if (!mounted) return;
-          showDialog(
-            context: this.context,
-            builder:
-                (_) => const AlertDialog(
-                  content: Text("El pago fue cancelado por el usuario."),
-                ),
-          );
-        } else {
-          showDialog(
-            context: this.context,
-            builder:
-                (_) => AlertDialog(
-                  content: Text("Error en el pago: ${e.error.message}"),
-                ),
-          );
-        }
-      } else {
-        print('Error desconocido: $e');
-        if (!mounted) return;
-        showDialog(
-          context: this.context,
-          builder:
-              (_) => const AlertDialog(
-                content: Text("Error al procesar el pago. Inténtalo de nuevo."),
-              ),
-        );
-      }
-    }
+    _mostrarQrParaPago(context, pedido);
   }
 
   Future<void> _checkPermissionAndGetLocation() async {
@@ -164,6 +193,40 @@ class HomePageState extends State<HomePage> {
             onCancel: _cancelarPedido,
           ),
     );
+  }
+
+  Future<void> checkPermissionAndGetLocation() async {
+    final status = await Permission.location.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Permiso de ubicación denegado')),
+      );
+      return;
+    }
+
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      _ubicacionInicial = LatLng(position.latitude, position.longitude);
+    });
+
+    if (_pedidoActual != null && !_panelMostrado) {
+      final destino = _pedidoActual!['location'];
+      final distancia = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        destino['latitude'],
+        destino['longitude'],
+      );
+      print('_pedidoActual: $_pedidoActual');
+
+      if (distancia <= 50) {
+        _panelMostrado = true;
+        _mostrarPanelEntrega(_pedidoActual!);
+      }
+    }
   }
 
   Future<void> _marcarPedidoComoCompletado() async {
@@ -336,6 +399,7 @@ class HomePageState extends State<HomePage> {
                     ordersExpanded: _ordersExpanded,
                     selectedOrderLocation: _selectedOrderLocation,
                     ordenActual: _pedidoActual,
+                    ordenesParaRutaOptima: _rutaOptimaPedidos,
                   ),
                   Positioned(
                     top: 16,
@@ -394,12 +458,23 @@ class HomePageState extends State<HomePage> {
                         onVerEnMapa: (pedidoSeleccionado, listaAsignada) {
                           setState(() {
                             _pedidoActual = pedidoSeleccionado;
+                            _rutaOptimaPedidos = null;
                             _ordenesAsignadas = listaAsignada;
                             _selectedOrderLocation = LatLng(
                               pedidoSeleccionado['location']['latitude'],
                               pedidoSeleccionado['location']['longitude'],
                             );
                             _ordersExpanded = false;
+                          });
+                        },
+                        onOptimizarRutaCompleta: (todosLosPedidos) {
+                          setState(() {
+                            // Guarda los pedidos para la optimización
+                            _rutaOptimaPedidos =
+                                todosLosPedidos.cast<Map<String, dynamic>>();
+                            _pedidoActual = null; // Limpia el pedido individual
+                            _ordersExpanded =
+                                false; // Cierra la lista para ver el mapa
                           });
                         },
                       ),
